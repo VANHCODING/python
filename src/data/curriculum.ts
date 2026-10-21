@@ -1021,4 +1021,436 @@ def factorial(n):
       },
     ],
   },
+  {
+    id: 'module-6',
+    order: 6,
+    title: 'Module 6: List Comprehension & Lambda (Asabeneh Day 13-14)',
+    description: 'Phong cách viết code Pythonic đỉnh cao: List Comprehension, hàm ẩn danh Lambda, map & filter.',
+    icon: 'Sparkles',
+    lessons: [
+      {
+        id: 'lesson-13',
+        moduleId: 'module-6',
+        order: 1,
+        title: 'Bài 13: List Comprehension - Cú pháp Pythonic',
+        summary: 'Tối ưu hóa vòng lặp for và mệnh đề if thành 1 dòng code thanh lịch.',
+        concept: 'List & Dict Comprehension Syntax',
+        theoryMarkdown: `### ⚡ List Comprehension: Đặc sản của Python
+
+Thay vì phải tạo danh sách rỗng rồi dùng vòng lặp \`for\` và lệnh \`.append()\`, Python cho phép bạn tạo danh sách mới chỉ bằng **1 dòng duy nhất**:
+
+\`\`\`python
+# Cách truyền thống (Dài 4 dòng):
+squares = []
+for x in range(5):
+    if x % 2 == 0:
+        squares.append(x ** 2)
+
+# Chuẩn Pythonic với List Comprehension:
+squares = [x ** 2 for x in range(5) if x % 2 == 0]
+# Kết quả: [0, 4, 16]
+\`\`\`
+
+#### 📐 Cấu trúc cốt lõi:
+\`\`\`python
+[ <biểu_thức_kết_quả> for <biến> in <tập_hợp> if <điều_kiện> ]
+\`\`\`
+
+> 💡 **Tốc độ:** List Comprehension chạy ở tầng bytecode tối ưu của CPython nên nhanh hơn vòng lặp \`for\` thông thường khoảng **20% - 30%**!`,
+        targetFunction: 'filter_and_square_evens',
+        starterCode: `# Thử thách: Viết hàm filter_and_square_evens(nums)
+# Nhận vào một danh sách các số nguyên nums.
+# Hãy dùng List Comprehension để:
+# 1. Lọc ra các số CHẴN (chia hết cho 2).
+# 2. Bình phương các số đó lên (** 2).
+# 3. Trả về danh sách kết quả.
+# Ví dụ: filter_and_square_evens([1, 2, 3, 4, 5, 6]) -> [4, 16, 36]
+
+def filter_and_square_evens(nums):
+    # Viết code của bạn ở đây (khuyên dùng 1 dòng List Comprehension!)
+    pass
+`,
+        solutionCode: `def filter_and_square_evens(nums):
+    return [x ** 2 for x in nums if x % 2 == 0]
+`,
+        hints: [
+          'Cú pháp: `[x ** 2 for x in nums if x % 2 == 0]`.',
+          'Kiểm tra số chẵn bằng toán tử chia lấy dư: `x % 2 == 0`.',
+        ],
+        testCases: [
+          {
+            id: 'tc-13-1',
+            description: '[1, 2, 3, 4, 5, 6] -> [4, 16, 36]',
+            type: 'function',
+            input: [[1, 2, 3, 4, 5, 6]],
+            expected: [4, 16, 36],
+          },
+          {
+            id: 'tc-13-2',
+            description: 'Danh sách toàn số lẻ [1, 3, 5] -> []',
+            type: 'function',
+            input: [[1, 3, 5]],
+            expected: [],
+          },
+          {
+            id: 'tc-13-3',
+            description: 'Chứa số âm và số 0: [-2, 0, 3] -> [4, 0]',
+            type: 'function',
+            input: [[-2, 0, 3]],
+            expected: [4, 0],
+          },
+        ],
+      },
+      {
+        id: 'lesson-14',
+        moduleId: 'module-6',
+        order: 2,
+        title: 'Bài 14: Lambda, Map & Filter - Lập trình hàm',
+        summary: 'Hàm ẩn danh vô danh (Anonymous Function) và bộ xử lý dữ liệu hàng loạt.',
+        concept: 'First-Class Functions & Lambda Expressions',
+        theoryMarkdown: `### 🏹 Hàm ẩn danh (Lambda) & Higher-Order Functions
+
+Lambda là hàm nhỏ gọn không có tên, định nghĩa ngay tại nơi sử dụng:
+
+\`\`\`python
+# Cú pháp: lambda <tham_số>: <biểu_thức_trả_về>
+double = lambda x: x * 2
+print(double(5)) # 10
+\`\`\`
+
+#### 🔄 Bộ đôi quyền lực: \`filter()\` và \`map()\`:
+1. \`filter(func, iterable)\`: Giữ lại các phần tử mà \`func\` trả về \`True\`.
+2. \`map(func, iterable)\`: Biến đổi từng phần tử theo \`func\`.
+
+\`\`\`python
+scores = [4, 7, 9, 3, 8]
+passed = list(filter(lambda s: s >= 5, scores)) # [7, 9, 8]
+\`\`\``,
+        targetFunction: 'get_adult_names',
+        starterCode: `# Thử thách: Viết hàm get_adult_names(users)
+# Nhận vào danh sách users, mỗi user là dict gồm {"name": str, "age": int}.
+# Hãy lọc ra những người có age >= 18 và trả về danh sách tên của họ VIẾT HOA TOÀN BỘ (.upper()).
+# Ví dụ: get_adult_names([{"name": "nam", "age": 16}, {"name": "hoa", "age": 20}]) -> ["HOA"]
+
+def get_adult_names(users):
+    # Viết code của bạn ở đây
+    pass
+`,
+        solutionCode: `def get_adult_names(users):
+    return [u["name"].upper() for u in users if u["age"] >= 18]
+`,
+        hints: [
+          'Bạn có thể kết hợp List Comprehension hoặc dùng `filter` + `map`.',
+          'Truy xuất tuổi: `u["age"] >= 18` và chuyển tên thành in hoa: `u["name"].upper()`.',
+        ],
+        testCases: [
+          {
+            id: 'tc-14-1',
+            description: 'Lọc 1 người trên 18 tuổi',
+            type: 'function',
+            input: [
+              [
+                { name: 'nam', age: 16 },
+                { name: 'hoa', age: 20 },
+              ],
+            ],
+            expected: ['HOA'],
+          },
+          {
+            id: 'tc-14-2',
+            description: 'Tất cả đều dưới 18 tuổi',
+            type: 'function',
+            input: [
+              [
+                { name: 'binh', age: 12 },
+                { name: 'an', age: 15 },
+              ],
+            ],
+            expected: [],
+          },
+          {
+            id: 'tc-14-3',
+            description: 'Nhiều người hợp lệ',
+            type: 'function',
+            input: [
+              [
+                { name: 'alex', age: 25 },
+                { name: 'bob', age: 18 },
+                { name: 'charlie', age: 17 },
+              ],
+            ],
+            expected: ['ALEX', 'BOB'],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'module-7',
+    order: 7,
+    title: 'Module 7: Xử lý ngoại lệ & Regex (Asabeneh Day 17-18)',
+    description: 'Bảo vệ chương trình bằng try-except và làm chủ biểu thức chính quy (Regex).',
+    icon: 'ShieldAlert',
+    lessons: [
+      {
+        id: 'lesson-15',
+        moduleId: 'module-7',
+        order: 1,
+        title: 'Bài 15: Try - Except - Finally - Phòng chống Crash',
+        summary: 'Kiểm soát lỗi thời gian chạy (Runtime Errors) thay vì để chương trình bị sập.',
+        concept: 'Defensive Programming & Exception Handling',
+        theoryMarkdown: `### 🛡️ Xử lý ngoại lệ: Viết mã nguồn bất khả xâm phạm
+
+Khi gặp lỗi (như chia cho 0, ép chuỗi sai), Python sẽ văng ra một **Ngoại lệ (Exception)** làm dừng toàn bộ chương trình:
+
+\`\`\`python
+try:
+    # Đoạn code có nguy cơ vấp ngã
+    num = int("abc")
+except ValueError as e:
+    # Đoạn code ứng cứu khi xảy ra lỗi cụ thể
+    print("Không thể chuyển đổi chuỗi thành số!")
+finally:
+    # Luôn luôn chạy dù có lỗi hay không
+    print("Hoàn tất kiểm tra")
+\`\`\`
+
+#### ⚠️ Quy tắc tối quan trọng:
+Tuyệt đối không dùng \`except:\` trần trụi (bare except). Hãy luôn chỉ định rõ kiểu lỗi bạn muốn bắt: \`ZeroDivisionError\`, \`TypeError\`, \`ValueError\`!`,
+        targetFunction: 'safe_divide',
+        starterCode: `# Thử thách: Viết hàm safe_divide(a, b)
+# Nhận vào 2 giá trị a và b.
+# Hãy dùng khối try - except để:
+# 1. Tính kết quả a / b, làm tròn 2 chữ số thập phân bằng round(res, 2).
+# 2. Nếu b = 0, bắt ZeroDivisionError và trả về chuỗi "Error: Division by zero".
+# 3. Nếu a hoặc b không phải kiểu số (TypeError), bắt TypeError và trả về "Error: Invalid type".
+
+def safe_divide(a, b):
+    # Viết code xử lý ngoại lệ ở đây
+    pass
+`,
+        solutionCode: `def safe_divide(a, b):
+    try:
+        return round(a / b, 2)
+    except ZeroDivisionError:
+        return "Error: Division by zero"
+    except TypeError:
+        return "Error: Invalid type"
+`,
+        hints: [
+          'Đặt phép chia `return round(a / b, 2)` vào trong khối `try:`.',
+          'Thêm nhánh `except ZeroDivisionError:` trả về `"Error: Division by zero"`.',
+          'Thêm nhánh `except TypeError:` trả về `"Error: Invalid type"`.',
+        ],
+        testCases: [
+          {
+            id: 'tc-15-1',
+            description: 'Phép chia hợp lệ 10 / 4 -> 2.5',
+            type: 'function',
+            input: [10, 4],
+            expected: 2.5,
+          },
+          {
+            id: 'tc-15-2',
+            description: 'Lỗi chia cho 0: 7 / 0',
+            type: 'function',
+            input: [7, 0],
+            expected: 'Error: Division by zero',
+          },
+          {
+            id: 'tc-15-3',
+            description: 'Lỗi truyền chuỗi thay vì số: "10" / 2',
+            type: 'function',
+            input: ['10', 2],
+            expected: 'Error: Invalid type',
+          },
+        ],
+      },
+      {
+        id: 'lesson-16',
+        moduleId: 'module-7',
+        order: 2,
+        title: 'Bài 16: Regular Expressions (Regex) - Bậc thầy xử lý chuỗi',
+        summary: 'Sử dụng module re để kiểm tra định dạng dữ liệu (Validation).',
+        concept: 'Pattern Matching with regex module',
+        theoryMarkdown: `### 🔍 Module \`re\`: Siêu năng lực kiểm tra chuỗi
+
+Biểu thức chính quy (Regex) là công cụ kiểm tra chuỗi theo mẫu (pattern):
+
+\`\`\`python
+import re
+
+# Kiểm tra xem chuỗi có phải mã sinh viên dạng "SV" theo sau bởi 4 chữ số không:
+pattern = r"^SV\d{4}$"
+is_match = bool(re.match(pattern, "SV1234")) # True
+\`\`\`
+
+#### 📐 Các ký tự mẫu cốt lõi:
+- \`^\`: Bắt đầu chuỗi
+- \`$\`: Kết thúc chuỗi
+- \`\\d\`: Chữ số bất kỳ ($0-9$)
+- \`{10}\`: Lặp lại đúng 10 lần
+- \`[0-9]\`: Tập hợp các chữ số`,
+        targetFunction: 'is_valid_vietnam_phone',
+        starterCode: `# Thử thách: Viết hàm is_valid_vietnam_phone(phone)
+# Dùng thư viện re để kiểm tra một số điện thoại di động Việt Nam hợp lệ:
+# Quy tắc:
+# 1. Bắt đầu bằng số 0.
+# 2. Chữ số thứ hai phải là một trong các số: 3, 5, 7, 8, 9 (ví dụ: 09, 03, 08...).
+# 3. Tổng cộng phải có đúng 10 chữ số (chỉ gồm các ký tự số từ 0-9).
+# Trả về True nếu hợp lệ, False nếu không hợp lệ.
+
+import re
+
+def is_valid_vietnam_phone(phone):
+    # Viết code ở đây
+    pass
+`,
+        solutionCode: `import re
+
+def is_valid_vietnam_phone(phone):
+    pattern = r"^0[35789]\d{8}$"
+    return bool(re.match(pattern, str(phone)))
+`,
+        hints: [
+          'Nhập thư viện: `import re`.',
+          'Mẫu Regex: `r"^0[35789]\\d{8}$"`.',
+          '`^0`: Bắt đầu bằng 0, `[35789]`: số thứ hai, `\\d{8}$`: đúng 8 chữ số tiếp theo đến hết chuỗi.',
+        ],
+        testCases: [
+          {
+            id: 'tc-16-1',
+            description: 'Số hợp lệ: "0912345678"',
+            type: 'function',
+            input: ['0912345678'],
+            expected: true,
+          },
+          {
+            id: 'tc-16-2',
+            description: 'Đầu số 02 không phải di động: "0212345678"',
+            type: 'function',
+            input: ['0212345678'],
+            expected: false,
+          },
+          {
+            id: 'tc-16-3',
+            description: 'Thiếu chữ số (chỉ có 8 số): "09123456"',
+            type: 'function',
+            input: ['09123456'],
+            expected: false,
+          },
+          {
+            id: 'tc-16-4',
+            description: 'Chứa ký tự chữ: "091234567a"',
+            type: 'function',
+            input: ['091234567a'],
+            expected: false,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'module-8',
+    order: 8,
+    title: 'Module 8: Lập trình Hướng đối tượng - OOP (Asabeneh Day 21)',
+    description: 'Xây dựng Class, Constructor __init__, con trỏ self và tư duy đóng gói dữ liệu.',
+    icon: 'Cpu',
+    lessons: [
+      {
+        id: 'lesson-17',
+        moduleId: 'module-8',
+        order: 1,
+        title: 'Bài 17: Class, __init__ & self - Tư duy Hướng đối tượng',
+        summary: 'Mô hình hóa thực thể thực tế với thuộc tính (Attributes) và phương thức (Methods).',
+        concept: 'Object-Oriented Programming (OOP) & Encapsulation',
+        theoryMarkdown: `### 🏛️ Lập trình Hướng đối tượng (OOP)
+
+OOP giúp chúng ta gom dữ liệu (trạng thái) và hành động (phương thức) vào chung một thực thể gọi là **Đối tượng (Object)** sinh ra từ một khuôn mẫu **Lớp (Class)**.
+
+\`\`\`python
+class BankAccount:
+    # Hàm khởi tạo (Constructor):
+    def __init__(self, owner, balance=0):
+        self.owner = owner       # Thuộc tính
+        self.balance = balance
+
+    # Phương thức (Method):
+    def deposit(self, amount):
+        if amount > 0:
+            self.balance += amount
+        return self.balance
+\`\`\`
+
+#### ❓ Tại sao luôn phải có tham số \`self\`?
+Trong Python, \`self\` đại diện cho **chính cá thể đối tượng đang được gọi**. Khi bạn viết \`acc.deposit(100)\`, Python thực chất thực hiện \`BankAccount.deposit(acc, 100)\`!`,
+        targetFunction: 'bank_simulator',
+        starterCode: `# Thử thách: Tạo class BankAccount và hoàn thiện hàm mô phỏng bank_simulator
+# 1. Định nghĩa class BankAccount có:
+#    - __init__(self, balance=0): lưu số dư vào self.balance.
+#    - deposit(self, amount): cộng amount vào balance và trả về balance mới.
+#    - withdraw(self, amount): nếu amount <= balance, trừ balance và trả về balance mới;
+#      nếu amount > balance, không trừ tiền và trả về "Insufficient funds".
+# 2. Hàm bank_simulator(initial, deposit_amt, withdraw_amt) khởi tạo tài khoản,
+#    thực hiện nạp và rút tiền, trả về một tuple: (balance_sau_nap, ket_qua_sau_rut).
+
+class BankAccount:
+    # Định nghĩa class ở đây
+    pass
+
+def bank_simulator(initial, deposit_amt, withdraw_amt):
+    # Sử dụng class BankAccount ở đây
+    pass
+`,
+        solutionCode: `class BankAccount:
+    def __init__(self, balance=0):
+        self.balance = balance
+
+    def deposit(self, amount):
+        self.balance += amount
+        return self.balance
+
+    def withdraw(self, amount):
+        if amount > self.balance:
+            return "Insufficient funds"
+        self.balance -= amount
+        return self.balance
+
+def bank_simulator(initial, deposit_amt, withdraw_amt):
+    acc = BankAccount(initial)
+    b1 = acc.deposit(deposit_amt)
+    b2 = acc.withdraw(withdraw_amt)
+    return b1, b2
+`,
+        hints: [
+          'Trong `BankAccount`, hãy lưu `self.balance = balance`.',
+          'Trong `withdraw`: `if amount > self.balance: return "Insufficient funds"` ngược lại trừ `self.balance -= amount` và trả về `self.balance`.',
+          'Trong `bank_simulator`: Tạo đối tượng `acc = BankAccount(initial)`, gọi `acc.deposit(deposit_amt)`, sau đó gọi `acc.withdraw(withdraw_amt)` và trả về cả 2 giá trị.',
+        ],
+        testCases: [
+          {
+            id: 'tc-17-1',
+            description: 'Tài khoản 100k, nạp 50k -> 150k, rút 30k -> 120k',
+            type: 'function',
+            input: [100, 50, 30],
+            expected: [150, 120],
+          },
+          {
+            id: 'tc-17-2',
+            description: 'Rút quá số dư: 100k, nạp 20k -> 120k, rút 200k -> "Insufficient funds"',
+            type: 'function',
+            input: [100, 20, 200],
+            expected: [120, 'Insufficient funds'],
+          },
+          {
+            id: 'tc-17-3',
+            description: 'Khởi tạo 0 đồng, nạp 500k, rút đúng 500k -> 0',
+            type: 'function',
+            input: [0, 500, 500],
+            expected: [500, 0],
+          },
+        ],
+      },
+    ],
+  },
 ];

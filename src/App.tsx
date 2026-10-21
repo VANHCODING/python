@@ -9,6 +9,7 @@ import { EditorPanel } from './components/EditorPanel';
 import { ConsolePanel } from './components/ConsolePanel';
 import { SplitLayout } from './components/SplitLayout';
 import { CelebrationModal } from './components/CelebrationModal';
+import { playSuccessChime } from './utils/sound';
 
 const STORAGE_KEY = 'pymaster_progress_v1';
 
@@ -126,25 +127,24 @@ export function App() {
     runTests(code, currentLesson.testCases, currentLesson.targetFunction);
   };
 
-  // Next lesson calculation
+  // Previous and next lesson navigation
+  const currentIndex = useMemo(() => {
+    return allLessons.findIndex((l) => l.id === currentLesson.id);
+  }, [allLessons, currentLesson.id]);
+
+  const prevLesson = useMemo(() => {
+    if (currentIndex > 0) {
+      return allLessons[currentIndex - 1];
+    }
+    return null;
+  }, [allLessons, currentIndex]);
+
   const nextLesson = useMemo(() => {
-    const currentIndex = allLessons.findIndex((l) => l.id === currentLesson.id);
     if (currentIndex >= 0 && currentIndex < allLessons.length - 1) {
       return allLessons[currentIndex + 1];
     }
     return null;
-  }, [allLessons, currentLesson.id]);
-
-  // Check for 100% test pass to trigger celebration & mark completed
-  useEffect(() => {
-    if (testSummary && testSummary.allPassed) {
-      if (!progress.completedLessonIds.includes(currentLesson.id)) {
-        const nextCompleted = [...progress.completedLessonIds, currentLesson.id];
-        saveProgress({ completedLessonIds: nextCompleted });
-      }
-      setShowCelebration(true);
-    }
-  }, [testSummary, currentLesson.id]);
+  }, [allLessons, currentIndex]);
 
   // Select lesson from sidebar or modal
   const handleSelectLesson = (lesson: Lesson) => {
@@ -153,11 +153,29 @@ export function App() {
     setIsSidebarOpen(false);
   };
 
+  const handlePrevLesson = () => {
+    if (prevLesson) {
+      handleSelectLesson(prevLesson);
+    }
+  };
+
   const handleNextLesson = () => {
     if (nextLesson) {
       handleSelectLesson(nextLesson);
     }
   };
+
+  // Check for 100% test pass to trigger celebration & audio chime
+  useEffect(() => {
+    if (testSummary && testSummary.allPassed) {
+      playSuccessChime();
+      if (!progress.completedLessonIds.includes(currentLesson.id)) {
+        const nextCompleted = [...progress.completedLessonIds, currentLesson.id];
+        saveProgress({ completedLessonIds: nextCompleted });
+      }
+      setShowCelebration(true);
+    }
+  }, [testSummary, currentLesson.id]);
 
   return (
     <div className="h-screen w-screen flex flex-col bg-zinc-950 text-zinc-100 overflow-hidden font-sans">
@@ -187,11 +205,16 @@ export function App() {
             <ProblemPanel
               lesson={currentLesson}
               isCompleted={progress.completedLessonIds.includes(currentLesson.id)}
+              onPrevLesson={handlePrevLesson}
+              onNextLesson={handleNextLesson}
+              hasPrev={!!prevLesson}
+              hasNext={!!nextLesson}
             />
           }
           editor={
             <EditorPanel
               code={code}
+              lessonId={currentLesson.id}
               onChange={handleCodeChange}
               onRunCode={handleRunCode}
               onSubmitTest={handleSubmitTest}

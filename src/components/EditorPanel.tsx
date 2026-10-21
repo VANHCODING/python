@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Editor, { OnMount } from '@monaco-editor/react';
-import { Play, Send, Loader2, Sparkles, CheckCircle2, RotateCcw } from 'lucide-react';
+import { Play, Send, Loader2, Sparkles, Download, Copy, Check } from 'lucide-react';
 
 interface EditorPanelProps {
   code: string;
+  lessonId: string;
   onChange: (value: string) => void;
   onRunCode: () => void;
   onSubmitTest: () => void;
@@ -17,6 +18,7 @@ interface EditorPanelProps {
 
 export const EditorPanel: React.FC<EditorPanelProps> = ({
   code,
+  lessonId,
   onChange,
   onRunCode,
   onSubmitTest,
@@ -27,6 +29,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
   isTesting,
 }) => {
   const editorRef = useRef<any>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -48,6 +51,24 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
     if (editorRef.current) {
       editorRef.current.getAction('editor.action.formatDocument')?.run();
     }
+  };
+
+  const handleDownload = () => {
+    const blob = new Blob([code], { type: 'text/x-python;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${lessonId || 'solution'}.py`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -72,14 +93,35 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
         </div>
 
         {/* Right: Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {/* Copy Code */}
+          <button
+            onClick={handleCopyCode}
+            className="p-1.5 text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded transition-colors"
+            title="Sao chép toàn bộ mã nguồn"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+          </button>
+
+          {/* Download .py */}
+          <button
+            onClick={handleDownload}
+            className="p-1.5 text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded transition-colors"
+            title="Tải file .py về máy tính"
+          >
+            <Download className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Format Code */}
           <button
             onClick={handleFormatCode}
-            className="px-2.5 py-1 text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded transition-colors"
-            title="Định dạng thụt lề chuẩn"
+            className="p-1.5 text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded transition-colors"
+            title="Tự động căn chỉnh thụt lề chuẩn PEP 8"
           >
             <Sparkles className="w-3.5 h-3.5" />
           </button>
+
+          <div className="h-4 w-px bg-zinc-800 mx-1" />
 
           {/* Run Code Button */}
           <button

@@ -12,7 +12,10 @@ import {
   Code2,
   GitFork,
   Box,
-  Repeat
+  Repeat,
+  Sparkles,
+  ShieldAlert,
+  Cpu,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -30,6 +33,9 @@ const iconMap: Record<string, any> = {
   Repeat: Repeat,
   Layers: Layers,
   Code2: Code2,
+  Sparkles: Sparkles,
+  ShieldAlert: ShieldAlert,
+  Cpu: Cpu,
 };
 
 export const Sidebar: React.FC<SidebarProps> = ({
