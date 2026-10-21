@@ -190,6 +190,35 @@ import json
 test_cases = json.loads(__TEST_CASES_JSON__)
 target_func_name = __TARGET_FUNC__
 
+def are_equal(actual, expected):
+    if actual == expected:
+        return True
+    # Compare tuple vs list (JSON converts tuples to arrays/lists)
+    if isinstance(actual, (tuple, list)) and isinstance(expected, (tuple, list)):
+        if len(actual) != len(expected):
+            return False
+        return all(are_equal(a, e) for a, e in zip(actual, expected))
+    # Compare dict
+    if isinstance(actual, dict) and isinstance(expected, dict):
+        if set(actual.keys()) != set(expected.keys()):
+            return False
+        return all(are_equal(actual[k], expected[k]) for k in actual)
+    # Compare float with small tolerance
+    if isinstance(actual, (int, float)) and isinstance(expected, (int, float)):
+        return abs(actual - expected) < 1e-4
+    return False
+
+def safe_serialize(obj):
+    if isinstance(obj, (int, float, str, bool)) or obj is None:
+        return obj
+    if isinstance(obj, (list, tuple)):
+        return [safe_serialize(x) for x in obj]
+    if isinstance(obj, set):
+        return [safe_serialize(x) for x in sorted(list(obj), key=str)]
+    if isinstance(obj, dict):
+        return {str(k): safe_serialize(v) for k, v in obj.items()}
+    return str(obj)
+
 results = []
 all_passed = True
 
@@ -257,8 +286,8 @@ else:
                             tc_actual = fn(*inputs)
                         else:
                             tc_actual = fn(inputs)
-                        # Value equality check
-                        tc_passed = (tc_actual == expected)
+                        # Value equality check with tuple/list/float tolerance
+                        tc_passed = are_equal(tc_actual, expected)
                     elif tc_type == "stdout":
                         # Execute code or call function to inspect stdout
                         # In stdout tests, compare stripped stdout
@@ -280,7 +309,7 @@ else:
                 "passed": tc_passed,
                 "input": inputs,
                 "expected": expected,
-                "actual": tc_actual,
+                "actual": safe_serialize(tc_actual),
                 "error": tc_err,
                 "hidden": tc.get("hidden", False)
             })
