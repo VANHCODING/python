@@ -252,8 +252,9 @@ if syntax_or_runtime_err:
         })
     all_passed = False
 else:
-    # If target function is specified, verify it exists
-    if target_func_name and target_func_name not in user_ns:
+    # If target function is specified, verify it exists (only for function-based tests)
+    has_func_tests = any(tc.get("type", "function") == "function" for tc in test_cases)
+    if target_func_name and has_func_tests and target_func_name not in user_ns:
         err_msg = f"Không tìm thấy hàm '{target_func_name}'! Vui lòng kiểm tra lại tên hàm bạn đã viết đúng như đề bài yêu cầu chưa (chú ý chữ hoa/thường)."
         for tc in test_cases:
             results.append({
@@ -289,11 +290,18 @@ else:
                         # Value equality check with tuple/list/float tolerance
                         tc_passed = are_equal(tc_actual, expected)
                     elif tc_type == "stdout":
-                        # Execute code or call function to inspect stdout
-                        # In stdout tests, compare stripped stdout
-                        actual_out = tc_cap.get_stdout().strip()
+                        # Compare captured script output
+                        actual_out = cap_compile.get_stdout().strip()
                         tc_actual = actual_out
-                        tc_passed = (str(actual_out) == str(expected).strip())
+                        tc_passed = (str(actual_out).strip() == str(expected).strip())
+                    elif tc_type == "variable":
+                        var_name = tc.get("variable", "")
+                        if var_name not in user_ns:
+                            tc_passed = False
+                            tc_err = f"Chưa tìm thấy biến '{var_name}' trong bài làm. Hãy khai báo biến '{var_name}'!"
+                        else:
+                            tc_actual = user_ns[var_name]
+                            tc_passed = are_equal(tc_actual, expected)
                 except Exception as e:
                     e_info = friendly_error_info(e)
                     tc_err = f"{e_info['type']}: {e_info['message']}"
@@ -307,7 +315,7 @@ else:
                 "testCaseId": tc["id"],
                 "description": tc.get("description", ""),
                 "passed": tc_passed,
-                "input": inputs,
+                "input": f"Biến: {tc.get('variable')}" if tc_type == "variable" else ("Đầu ra màn hình" if tc_type == "stdout" else inputs),
                 "expected": expected,
                 "actual": safe_serialize(tc_actual),
                 "error": tc_err,

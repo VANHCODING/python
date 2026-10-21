@@ -8,9 +8,9 @@ interface SplitLayoutProps {
 
 export const SplitLayout: React.FC<SplitLayoutProps> = ({ left, editor, console }) => {
   // Horizontal split: percentage of left panel width (default 42%)
-  const [leftWidthPercent, setLeftWidthPercent] = useState(40);
-  // Vertical split: percentage of editor height (default 62%)
-  const [editorHeightPercent, setEditorHeightPercent] = useState(60);
+  const [leftWidthPercent, setLeftWidthPercent] = useState(42);
+  // Vertical split: percentage of editor height (default 50% for comfortable console reading)
+  const [editorHeightPercent, setEditorHeightPercent] = useState(50);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingHRef = useRef(false);

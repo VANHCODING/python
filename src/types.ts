@@ -1,10 +1,11 @@
-export type TestType = 'function' | 'stdout';
+export type TestType = 'function' | 'stdout' | 'variable';
 
 export interface TestCase {
   id: string;
   description: string;
-  input: any[]; // arguments for function calls, or stdin
-  expected: any; // expected return value or expected string output
+  input?: any[]; // arguments for function calls
+  variable?: string; // variable name if type is variable
+  expected: any; // expected return value, string output, or variable value
   type: TestType;
   hidden?: boolean;
 }

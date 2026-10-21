@@ -315,15 +315,19 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
                     </div>
                     <div className="bg-zinc-950 p-2.5 rounded border border-zinc-800/80 space-y-1">
                       <div>
-                        <span className="text-zinc-500">Đầu vào (Input): </span>
+                        <span className="text-zinc-500">Kiểm tra: </span>
                         <span className="text-emerald-300">
-                          {lesson.targetFunction
-                            ? `${lesson.targetFunction}(${tc.input.map((v) => JSON.stringify(v)).join(', ')})`
+                          {tc.type === 'variable'
+                            ? `Giá trị biến: ${tc.variable}`
+                            : tc.type === 'stdout'
+                            ? 'Đầu ra màn hình (print)'
+                            : lesson.targetFunction
+                            ? `${lesson.targetFunction}(${(tc.input || []).map((v) => JSON.stringify(v)).join(', ')})`
                             : JSON.stringify(tc.input)}
                         </span>
                       </div>
                       <div>
-                        <span className="text-zinc-500">Kỳ vọng (Output): </span>
+                        <span className="text-zinc-500">Kỳ vọng (Expected): </span>
                         <span className="text-amber-300">{JSON.stringify(tc.expected)}</span>
                       </div>
                     </div>
