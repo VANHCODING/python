@@ -1,0 +1,229 @@
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { CURRICULUM } from './data/curriculum';
+import { Lesson, UserProgress } from './types';
+import { usePyodide } from './hooks/usePyodide';
+import { Header } from './components/Header';
+import { Sidebar } from './components/Sidebar';
+import { ProblemPanel } from './components/ProblemPanel';
+import { EditorPanel } from './components/EditorPanel';
+import { ConsolePanel } from './components/ConsolePanel';
+import { SplitLayout } from './components/SplitLayout';
+import { CelebrationModal } from './components/CelebrationModal';
+
+const STORAGE_KEY = 'pymaster_progress_v1';
+
+export function App() {
+  // Flatten all lessons into a single list
+  const allLessons = useMemo(() => {
+    return CURRICULUM.flatMap((m) => m.lessons);
+  }, []);
+
+  // Initialize progress from localStorage
+  const [progress, setProgress] = useState<UserProgress>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.warn('Could not load progress from localStorage', e);
+    }
+    return {
+      completedLessonIds: [],
+      savedCode: {},
+      currentLessonId: allLessons[0]?.id || 'lesson-1',
+      theme: 'dark',
+    };
+  });
+
+  // Current Lesson state
+  const currentLesson = useMemo(() => {
+    return allLessons.find((l) => l.id === progress.currentLessonId) || allLessons[0];
+  }, [allLessons, progress.currentLessonId]);
+
+  // Current Code in Editor
+  const [code, setCode] = useState<string>(() => {
+    return progress.savedCode[currentLesson.id] || currentLesson.starterCode;
+  });
+
+  // Sync editor code when lesson changes
+  useEffect(() => {
+    const saved = progress.savedCode[currentLesson.id];
+    setCode(saved !== undefined ? saved : currentLesson.starterCode);
+  }, [currentLesson.id]);
+
+  // Save progress to localStorage
+  const saveProgress = useCallback((newProgress: Partial<UserProgress>) => {
+    setProgress((prev) => {
+      const updated = { ...prev, ...newProgress };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Failed to save to localStorage', e);
+      }
+      return updated;
+    });
+  }, []);
+
+  // Handle code change and persist
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    saveProgress({
+      savedCode: {
+        ...progress.savedCode,
+        [currentLesson.id]: newCode,
+      },
+    });
+  };
+
+  // Reset code to initial template
+  const handleResetCode = () => {
+    if (window.confirm('Bạn có chắc muốn khôi phục mã nguồn về trạng thái mặc định của bài học này?')) {
+      const defaultCode = currentLesson.starterCode;
+      setCode(defaultCode);
+      saveProgress({
+        savedCode: {
+          ...progress.savedCode,
+          [currentLesson.id]: defaultCode,
+        },
+      });
+    }
+  };
+
+  // Pyodide Runner Hook
+  const {
+    isReady,
+    isLoading,
+    loadingStage,
+    isRunning,
+    isTesting,
+    lastExecution,
+    testResults,
+    testSummary,
+    runCode,
+    runTests,
+    resetOutputs,
+  } = usePyodide();
+
+  // Console active tab state
+  const [consoleTab, setConsoleTab] = useState<'terminal' | 'tests'>('terminal');
+
+  // Sidebar toggle state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Celebration Modal state
+  const [showCelebration, setShowCelebration] = useState(false);
+
+  // Trigger Run Code
+  const handleRunCode = () => {
+    setConsoleTab('terminal');
+    runCode(code);
+  };
+
+  // Trigger Submit & Auto-Grade
+  const handleSubmitTest = () => {
+    setConsoleTab('tests');
+    runTests(code, currentLesson.testCases, currentLesson.targetFunction);
+  };
+
+  // Next lesson calculation
+  const nextLesson = useMemo(() => {
+    const currentIndex = allLessons.findIndex((l) => l.id === currentLesson.id);
+    if (currentIndex >= 0 && currentIndex < allLessons.length - 1) {
+      return allLessons[currentIndex + 1];
+    }
+    return null;
+  }, [allLessons, currentLesson.id]);
+
+  // Check for 100% test pass to trigger celebration & mark completed
+  useEffect(() => {
+    if (testSummary && testSummary.allPassed) {
+      if (!progress.completedLessonIds.includes(currentLesson.id)) {
+        const nextCompleted = [...progress.completedLessonIds, currentLesson.id];
+        saveProgress({ completedLessonIds: nextCompleted });
+      }
+      setShowCelebration(true);
+    }
+  }, [testSummary, currentLesson.id]);
+
+  // Select lesson from sidebar or modal
+  const handleSelectLesson = (lesson: Lesson) => {
+    resetOutputs();
+    saveProgress({ currentLessonId: lesson.id });
+    setIsSidebarOpen(false);
+  };
+
+  const handleNextLesson = () => {
+    if (nextLesson) {
+      handleSelectLesson(nextLesson);
+    }
+  };
+
+  return (
+    <div className="h-screen w-screen flex flex-col bg-zinc-950 text-zinc-100 overflow-hidden font-sans">
+      {/* Top Header */}
+      <Header
+        currentLesson={currentLesson}
+        totalLessons={allLessons.length}
+        completedCount={progress.completedLessonIds.length}
+        onResetCode={handleResetCode}
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        isSidebarOpen={isSidebarOpen}
+      />
+
+      {/* Main Workspace with Sidebar & Split Layout */}
+      <div className="flex-1 flex overflow-hidden relative">
+        <Sidebar
+          modules={CURRICULUM}
+          currentLessonId={currentLesson.id}
+          completedLessonIds={progress.completedLessonIds}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          onSelectLesson={handleSelectLesson}
+        />
+
+        <SplitLayout
+          left={
+            <ProblemPanel
+              lesson={currentLesson}
+              isCompleted={progress.completedLessonIds.includes(currentLesson.id)}
+            />
+          }
+          editor={
+            <EditorPanel
+              code={code}
+              onChange={handleCodeChange}
+              onRunCode={handleRunCode}
+              onSubmitTest={handleSubmitTest}
+              isReady={isReady}
+              isLoading={isLoading}
+              loadingStage={loadingStage}
+              isRunning={isRunning}
+              isTesting={isTesting}
+            />
+          }
+          console={
+            <ConsolePanel
+              execution={lastExecution}
+              testResults={testResults}
+              testSummary={testSummary}
+              activeTab={consoleTab}
+              onTabChange={setConsoleTab}
+              onClear={resetOutputs}
+            />
+          }
+        />
+      </div>
+
+      {/* Celebration Modal when all tests pass */}
+      <CelebrationModal
+        isOpen={showCelebration}
+        lesson={currentLesson}
+        nextLesson={nextLesson}
+        onNextLesson={handleNextLesson}
+        onClose={() => setShowCelebration(false)}
+      />
+    </div>
+  );
+}
+export default App;

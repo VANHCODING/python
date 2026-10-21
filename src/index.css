@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-zinc-950 text-zinc-100 antialiased font-sans selection:bg-emerald-500/30 selection:text-emerald-300;
+  }
+}
+
+/* Custom scrollbars for dev-tools look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+}
+
+/* Markdown styling inside theory tab */
+.prose-custom h3 {
+  @apply text-lg font-bold text-zinc-100 mt-4 mb-2 flex items-center gap-2;
+}
+
+.prose-custom h4 {
+  @apply text-sm font-semibold text-zinc-200 mt-3 mb-1;
+}
+
+.prose-custom p {
+  @apply text-sm text-zinc-300 leading-relaxed mb-3;
+}
+
+.prose-custom ul {
+  @apply list-disc list-inside text-sm text-zinc-300 space-y-1 mb-3;
+}
+
+.prose-custom ol {
+  @apply list-decimal list-inside text-sm text-zinc-300 space-y-1 mb-3;
+}
+
+.prose-custom pre {
+  @apply bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs font-mono text-emerald-300 overflow-x-auto my-2.5;
+}
+
+.prose-custom code:not(pre code) {
+  @apply bg-zinc-800 text-emerald-300 px-1.5 py-0.5 rounded text-xs font-mono font-medium;
+}
+
+.prose-custom table {
+  @apply w-full text-xs text-left text-zinc-300 border border-zinc-800 rounded-lg overflow-hidden my-3;
+}
+
+.prose-custom th {
+  @apply bg-zinc-900 text-zinc-200 font-semibold p-2 border-b border-zinc-800;
+}
+
+.prose-custom td {
+  @apply p-2 border-b border-zinc-800/60;
+}
+
+.prose-custom blockquote {
+  @apply border-l-2 border-emerald-500 bg-emerald-500/5 px-3 py-2 rounded-r text-xs text-zinc-300 my-2;
+}
