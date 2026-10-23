@@ -31,6 +31,16 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
   const editorRef = useRef<any>(null);
   const [copied, setCopied] = useState(false);
 
+  const isMac =
+    typeof window !== 'undefined' &&
+    (/Mac|iPod|iPhone|iPad/.test(navigator.platform || '') ||
+      /Macintosh|Mac OS X/.test(navigator.userAgent || ''));
+
+  const modKey = isMac ? '⌘' : 'Ctrl';
+  const runShortcutBadge = `${modKey}+↵`;
+  const runShortcutTitle = `Phím tắt: ${isMac ? 'Cmd + Enter' : 'Ctrl + Enter'}`;
+  const submitShortcutTitle = `Phím tắt: ${isMac ? 'Cmd + Shift + Enter' : 'Ctrl + Shift + Enter'}`;
+
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
 
@@ -98,7 +108,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           <button
             onClick={handleCopyCode}
             className="p-1.5 text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded transition-colors"
-            title="Sao chép toàn bộ mã nguồn"
+            title="Sao chép toàn bộ mã nguồn vào clipboard"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
@@ -128,7 +138,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
             onClick={onRunCode}
             disabled={!isReady || isRunning || isTesting}
             className="flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium text-zinc-200 bg-zinc-800 hover:bg-zinc-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            title="Phím tắt: Ctrl + Enter"
+            title={runShortcutTitle}
           >
             {isRunning ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
@@ -137,7 +147,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
             )}
             <span>Chạy thử</span>
             <kbd className="hidden sm:inline text-[9px] text-zinc-400 font-mono bg-zinc-900 px-1 rounded">
-              Ctrl+↵
+              {runShortcutBadge}
             </kbd>
           </button>
 
@@ -146,7 +156,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
             onClick={onSubmitTest}
             disabled={!isReady || isRunning || isTesting}
             className="flex items-center gap-1.5 px-3 py-1 rounded text-xs font-semibold text-zinc-950 bg-emerald-400 hover:bg-emerald-300 active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            title="Phím tắt: Ctrl + Shift + Enter"
+            title={submitShortcutTitle}
           >
             {isTesting ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-950" />

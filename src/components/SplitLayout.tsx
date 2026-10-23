@@ -73,7 +73,7 @@ export const SplitLayout: React.FC<SplitLayoutProps> = ({ left, editor, console 
     <div ref={containerRef} className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
       {/* Left Pane (Theory & Problem) */}
       <div
-        className="w-full md:h-full flex-shrink-0"
+        className="w-full md:h-full flex-shrink-0 overflow-hidden"
         style={{
           width: window.innerWidth >= 768 ? `${leftWidthPercent}%` : '100%',
           height: window.innerWidth < 768 ? '45vh' : '100%',

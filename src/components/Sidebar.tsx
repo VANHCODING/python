@@ -65,12 +65,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   if (!isOpen) return null;
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 w-80 bg-zinc-950 border-r border-zinc-800/80 shadow-2xl flex flex-col pt-14 md:relative md:pt-0">
+    <aside className="fixed inset-y-0 left-0 z-40 w-80 bg-zinc-950 border-r border-zinc-800/80 shadow-2xl flex flex-col h-full pt-14 md:relative md:pt-0 md:h-full overflow-hidden flex-shrink-0 select-none">
       {/* Top Header */}
-      <div className="p-4 border-b border-zinc-800/80 flex items-center justify-between">
+      <div className="p-3.5 border-b border-zinc-800/80 flex items-center justify-between flex-shrink-0 bg-zinc-950">
         <div className="flex items-center gap-2">
           <BookMarked className="w-4 h-4 text-emerald-400" />
-          <h2 className="text-sm font-semibold text-zinc-100 tracking-tight">Lộ trình học Python</h2>
+          <h2 className="text-sm font-semibold text-zinc-100 tracking-tight">Mục lục lộ trình</h2>
         </div>
         <button
           onClick={onClose}
@@ -80,8 +80,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      {/* Module & Lesson List */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-4">
+      {/* Module & Lesson List - Independent scroll container */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar overscroll-contain">
         {modules.map((mod) => {
           const IconComponent = iconMap[mod.icon] || Box;
           const isExpanded = !!expandedModules[mod.id];

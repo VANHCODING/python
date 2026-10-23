@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Terminal, CheckCircle2, XCircle, Clock, Trash2, AlertTriangle, ShieldCheck } from 'lucide-react';
+import React from 'react';
+import { Terminal, CheckCircle2, XCircle, Clock, Trash2, AlertTriangle, ShieldCheck, Loader2 } from 'lucide-react';
 import { ExecutionResult, TestResult } from '../types';
+import { formatPythonValue, formatVariableMap } from '../utils/format';
 
 interface ConsolePanelProps {
   execution: ExecutionResult | null;
@@ -9,6 +10,8 @@ interface ConsolePanelProps {
   activeTab: 'terminal' | 'tests';
   onTabChange: (tab: 'terminal' | 'tests') => void;
   onClear: () => void;
+  isRunning?: boolean;
+  isTesting?: boolean;
 }
 
 export const ConsolePanel: React.FC<ConsolePanelProps> = ({
@@ -18,6 +21,8 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({
   activeTab,
   onTabChange,
   onClear,
+  isRunning,
+  isTesting,
 }) => {
   return (
     <div className="h-full flex flex-col bg-zinc-950 border-t border-zinc-800/80">
@@ -78,14 +83,19 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="flex-1 overflow-y-auto p-3 font-mono text-xs">
+      {/* Content Area - Independent scroll container */}
+      <div className="flex-1 overflow-y-auto p-3 font-mono text-xs custom-scrollbar overscroll-contain">
         {/* TAB 1: TERMINAL */}
         {activeTab === 'terminal' && (
           <div className="space-y-2">
-            {!execution ? (
+            {isRunning ? (
+              <div className="flex items-center gap-2 text-emerald-400 py-3 font-sans text-xs">
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                <span>Đang thực thi mã nguồn Python...</span>
+              </div>
+            ) : !execution ? (
               <div className="text-zinc-600 italic select-none">
-                Nhấn &quot;Chạy thử&quot; (Ctrl+Enter) để xem kết quả xuất ra (stdout/print)...
+                Nhấn &quot;Chạy thử&quot; để xem kết quả xuất ra (stdout/print)...
               </div>
             ) : (
               <div className="space-y-2">
@@ -121,9 +131,14 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({
         {/* TAB 2: TEST RESULTS */}
         {activeTab === 'tests' && (
           <div className="space-y-3 font-sans">
-            {!testResults ? (
+            {isTesting ? (
+              <div className="flex items-center gap-2 text-blue-400 py-3 font-sans text-xs">
+                <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                <span>Đang chạy bộ kiểm thử và chấm bài tự động...</span>
+              </div>
+            ) : !testResults ? (
               <div className="text-zinc-600 italic select-none font-mono">
-                Nhấn &quot;Nộp bài &amp; Chấm&quot; (Ctrl+Shift+Enter) để hệ thống chạy bộ kiểm thử tự động...
+                Nhấn &quot;Nộp bài &amp; Chấm&quot; để hệ thống chạy bộ kiểm thử tự động...
               </div>
             ) : (
               <div className="space-y-3">
@@ -206,17 +221,27 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({
                         <div>
                           <span className="text-zinc-500">Đầu vào (Input): </span>
                           <span className="text-zinc-300">
-                            {tr.hidden ? '[Bảo mật / Test ẩn]' : JSON.stringify(tr.input)}
+                            {tr.hidden
+                              ? '[Bảo mật / Test ẩn]'
+                              : typeof tr.input === 'object' && tr.input !== null && !Array.isArray(tr.input)
+                              ? formatVariableMap(tr.input)
+                              : formatPythonValue(tr.input, false)}
                           </span>
                         </div>
                         <div>
                           <span className="text-zinc-500">Kỳ vọng (Expected): </span>
-                          <span className="text-amber-300">{JSON.stringify(tr.expected)}</span>
+                          <span className="text-amber-300">
+                            {typeof tr.expected === 'object' && tr.expected !== null && !Array.isArray(tr.expected)
+                              ? formatVariableMap(tr.expected)
+                              : formatPythonValue(tr.expected, false)}
+                          </span>
                         </div>
                         <div>
                           <span className="text-zinc-500">Thực tế (Actual): </span>
                           <span className={tr.passed ? 'text-emerald-300' : 'text-rose-300 font-semibold'}>
-                            {JSON.stringify(tr.actual)}
+                            {typeof tr.actual === 'object' && tr.actual !== null && !Array.isArray(tr.actual)
+                              ? formatVariableMap(tr.actual)
+                              : formatPythonValue(tr.actual, false)}
                           </span>
                         </div>
 

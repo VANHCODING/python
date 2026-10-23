@@ -192,17 +192,27 @@ perimeter = 2 * (length + width)
         testCases: [
           {
             id: 'tc-3-1',
-            description: 'Biến area phải bằng 40 (8 * 5)',
+            description: 'Kịch bản 1: length = 8, width = 5 -> area = 40, perimeter = 26',
             type: 'variable',
-            variable: 'area',
-            expected: 40,
+            mockVariables: { length: 8, width: 5 },
+            expectedVariables: { area: 40, perimeter: 26 },
+            expected: { area: 40, perimeter: 26 },
           },
           {
             id: 'tc-3-2',
-            description: 'Biến perimeter phải bằng 26 (2 * (8 + 5))',
+            description: 'Kịch bản 2: length = 10, width = 3 -> area = 30, perimeter = 26',
             type: 'variable',
-            variable: 'perimeter',
-            expected: 26,
+            mockVariables: { length: 10, width: 3 },
+            expectedVariables: { area: 30, perimeter: 26 },
+            expected: { area: 30, perimeter: 26 },
+          },
+          {
+            id: 'tc-3-3',
+            description: 'Kịch bản 3: length = 4, width = 4 -> area = 16, perimeter = 16',
+            type: 'variable',
+            mockVariables: { length: 4, width: 4 },
+            expectedVariables: { area: 16, perimeter: 16 },
+            expected: { area: 16, perimeter: 16 },
           },
         ],
       },
@@ -300,25 +310,36 @@ reversed_str = "PYTHON"[::-1]
         concept: 'Boolean Logic & Comparison Operators',
         theoryMarkdown: `### 🎯 Toán tử so sánh & Logic Boolean
 
-Kiểu \`bool\` chỉ có 2 giá trị duy nhất: \`True\` (Đúng) hoặc \`False\` (Sai).
+Kiểu \`bool\` chỉ có 2 giá trị duy nhất: \`True\` (Đúng) hoặc \`False\` (Sai) — **bắt buộc viết hoa chữ cái đầu**!
 
-#### ⚖️ 1. Các toán tử so sánh:
-| Toán tử | Ý nghĩa | Ví dụ |
-| :--- | :--- | :--- |
-| \`==\` | Bằng nhau (so sánh giá trị) | \`5 == 5\` -> \`True\` |
-| \`!=\` | Khác nhau | \`5 != 3\` -> \`True\` |
-| \`>\`, \`>=\` | Lớn hơn, Lớn hơn hoặc bằng | \`10 >= 10\` -> \`True\` |
-| \`<\`, \`<=\` | Nhỏ hơn, Nhỏ hơn hoặc bằng | \`4 < 2\` -> \`False\` |
+#### ⚠️ Phân biệt sống còn: Toán tử Gán \`=\` và So sánh \`==\`
+- Dấu bằng đơn \`=\` là **toán tử gán** (*assignment*): dùng để gán giá trị cho biến (Ví dụ: \`age = 20\`). Tuyệt đối không dùng để so sánh!
+- Hai dấu bằng \`==\` là **toán tử so sánh bằng** (*equality*): dùng để kiểm tra xem 2 giá trị có bằng nhau hay không (Ví dụ: \`5 == 5\` cho ra \`True\`).
 
-#### 🔗 2. Các toán tử logic:
+#### ⚖️ 1. Bảng toán tử so sánh chuẩn trong Python:
+| Toán tử Python | Ý nghĩa | Lưu ý cú pháp | Ví dụ code | Kết quả |
+| :---: | :--- | :--- | :--- | :---: |
+| \`==\` | So sánh bằng nhau | Dùng hai dấu bằng \`==\`, KHÔNG dùng dấu đơn \`=\` | \`5 == 5\` | \`True\` |
+| \`!=\` | So sánh khác nhau | KHÔNG dùng ký hiệu toán học \`≠\` | \`5 != 3\` | \`True\` |
+| \`>\` | Lớn hơn | Lớn hơn nghiêm ngặt | \`10 > 5\` | \`True\` |
+| \`<\` | Nhỏ hơn | Nhỏ hơn nghiêm ngặt | \`4 < 2\` | \`False\` |
+| \`>=\` | Lớn hơn hoặc bằng | KHÔNG dùng ký hiệu toán học \`≥\` | \`18 >= 18\` | \`True\` |
+| \`<=\` | Nhỏ hơn hoặc bằng | KHÔNG dùng ký hiệu toán học \`≤\` | \`15 <= 20\` | \`True\` |
+
+> 🚨 **Cảnh báo lỗi cú pháp**: Trong code Python **hoàn toàn không có** các ký tự toán học như \`≠\`, \`≥\`, \`≤\`. Nếu viết vào trình soạn thảo, Python sẽ lập tức báo lỗi \`SyntaxError: invalid character\`. Hãy luôn gõ đúng chuẩn: \`!=\`, \`>=\`, \`<=\`.
+
+#### 🔗 2. Các toán tử logic & Cơ chế ngắn mạch (Short-circuit):
 - \`and\`: Trả về \`True\` khi **CẢ HAI** vế đều là \`True\`.
+  - **Cơ chế ngắn mạch (*Short-circuit*)**: Nếu vế đầu tiên là \`False\`, Python dừng kiểm tra ngay lập tức và trả về \`False\` luôn mà không cần tính tiếp vế thứ hai (bởi vì chỉ cần 1 vế sai thì toàn bộ biểu thức \`and\` chắc chắn sai).
 - \`or\`: Trả về \`True\` khi **ÍT NHẤT MỘT** vế là \`True\`.
-- \`not\`: Đảo ngược giá trị logic (\`not True\` thành \`False\`).
+  - **Cơ chế ngắn mạch (*Short-circuit*)**: Nếu vế đầu tiên là \`True\`, Python dừng kiểm tra ngay lập tức và trả về \`True\` luôn mà không cần tính tiếp vế thứ hai.
+- \`not\`: Đảo ngược giá trị logic (\`not True\` thành \`False\`, \`not False\` thành \`True\`).
 
 \`\`\`python
 age = 20
 has_license = True
-can_drive = (age >= 18) and has_license # True
+# Kết hợp biểu thức:
+can_drive = (age >= 18) and has_license  # True
 \`\`\``,
         starterCode: `# Bài 5: Biểu thức logic Boolean
 age = 20
@@ -326,7 +347,7 @@ has_ticket = True
 is_vip = False
 
 # Thử thách:
-# 1. Khai báo biến is_adult kiểm tra xem age có lớn hơn hoặc bằng 18 không
+# 1. Khai báo biến is_adult kiểm tra xem age có lớn hơn hoặc bằng 18 không (dùng >=)
 # 2. Khai báo biến can_enter: điều kiện vào cổng là (có vé has_ticket HOẶC là khách is_vip) VÀ phải là người lớn is_adult
 
 # Viết code của bạn ở đây:
@@ -339,22 +360,40 @@ can_enter = (has_ticket or is_vip) and is_adult
 `,
         hints: [
           'Kiểm tra tuổi: `is_adult = age >= 18`.',
-          'Kết hợp or và and: `can_enter = (has_ticket or is_vip) and is_adult`.',
+          'Kết hợp or và and: `can_enter = (has_ticket or is_vip) and is_adult`. Nhớ đặt ngoặc `(has_ticket or is_vip)` để ưu tiên phép OR trước!',
         ],
         testCases: [
           {
             id: 'tc-5-1',
-            description: 'Biến is_adult phải là True (20 >= 18)',
+            description: 'Test 1: age = 16 (chưa đủ tuổi), has_ticket = True, is_vip = False',
             type: 'variable',
-            variable: 'is_adult',
-            expected: true,
+            mockVariables: { age: 16, has_ticket: true, is_vip: false },
+            expectedVariables: { is_adult: false, can_enter: false },
+            expected: { is_adult: false, can_enter: false },
           },
           {
             id: 'tc-5-2',
-            description: 'Biến can_enter phải là True',
+            description: 'Test 2: age = 25 (đủ tuổi), has_ticket = False, is_vip = True (khách VIP)',
             type: 'variable',
-            variable: 'can_enter',
-            expected: true,
+            mockVariables: { age: 25, has_ticket: false, is_vip: true },
+            expectedVariables: { is_adult: true, can_enter: true },
+            expected: { is_adult: true, can_enter: true },
+          },
+          {
+            id: 'tc-5-3',
+            description: 'Test 3: age = 30 (đủ tuổi), has_ticket = False, is_vip = False (không vé, không VIP)',
+            type: 'variable',
+            mockVariables: { age: 30, has_ticket: false, is_vip: false },
+            expectedVariables: { is_adult: true, can_enter: false },
+            expected: { is_adult: true, can_enter: false },
+          },
+          {
+            id: 'tc-5-4',
+            description: 'Test 4 (Mặc định): age = 20, has_ticket = True, is_vip = False',
+            type: 'variable',
+            mockVariables: { age: 20, has_ticket: true, is_vip: false },
+            expectedVariables: { is_adult: true, can_enter: true },
+            expected: { is_adult: true, can_enter: true },
           },
         ],
       },
@@ -421,10 +460,43 @@ else:
         testCases: [
           {
             id: 'tc-6-1',
-            description: 'Điểm 8.5 phải được xếp loại "Gioi"',
+            description: 'Kịch bản 1: score = 8.5 -> grade = "Gioi"',
             type: 'variable',
-            variable: 'grade',
+            mockVariables: { score: 8.5 },
+            expectedVariables: { grade: 'Gioi' },
             expected: 'Gioi',
+          },
+          {
+            id: 'tc-6-2',
+            description: 'Kịch bản 2: score = 9.5 -> grade = "Xuat sac"',
+            type: 'variable',
+            mockVariables: { score: 9.5 },
+            expectedVariables: { grade: 'Xuat sac' },
+            expected: 'Xuat sac',
+          },
+          {
+            id: 'tc-6-3',
+            description: 'Kịch bản 3: score = 6.8 -> grade = "Kha"',
+            type: 'variable',
+            mockVariables: { score: 6.8 },
+            expectedVariables: { grade: 'Kha' },
+            expected: 'Kha',
+          },
+          {
+            id: 'tc-6-4',
+            description: 'Kịch bản 4: score = 5.2 -> grade = "Trung binh"',
+            type: 'variable',
+            mockVariables: { score: 5.2 },
+            expectedVariables: { grade: 'Trung binh' },
+            expected: 'Trung binh',
+          },
+          {
+            id: 'tc-6-5',
+            description: 'Kịch bản 5: score = 3.5 -> grade = "Yeu"',
+            type: 'variable',
+            mockVariables: { score: 3.5 },
+            expectedVariables: { grade: 'Yeu' },
+            expected: 'Yeu',
           },
         ],
       },
@@ -548,10 +620,27 @@ while n > 0:
         testCases: [
           {
             id: 'tc-8-1',
-            description: 'Tổng các chữ số của 12345 phải bằng 15',
+            description: 'Kịch bản 1: n = 12345 -> digit_sum = 15 (1 + 2 + 3 + 4 + 5)',
             type: 'variable',
-            variable: 'digit_sum',
+            mockVariables: { n: 12345 },
+            expectedVariables: { digit_sum: 15 },
             expected: 15,
+          },
+          {
+            id: 'tc-8-2',
+            description: 'Kịch bản 2: n = 902 -> digit_sum = 11 (9 + 0 + 2)',
+            type: 'variable',
+            mockVariables: { n: 902 },
+            expectedVariables: { digit_sum: 11 },
+            expected: 11,
+          },
+          {
+            id: 'tc-8-3',
+            description: 'Kịch bản 3: n = 7 -> digit_sum = 7',
+            type: 'variable',
+            mockVariables: { n: 7 },
+            expectedVariables: { digit_sum: 7 },
+            expected: 7,
           },
         ],
       },

@@ -186,6 +186,7 @@ json.dumps({
 
       const graderCode = `
 import json
+import ast
 
 test_cases = json.loads(__TEST_CASES_JSON__)
 target_func_name = __TARGET_FUNC__
@@ -273,6 +274,8 @@ else:
             tc_type = tc.get("type", "function")
             expected = tc.get("expected")
             inputs = tc.get("input", [])
+            mock_vars = tc.get("mockVariables")
+            expected_vars = tc.get("expectedVariables")
             
             tc_cap = CaptureOutput()
             tc_passed = False
@@ -295,13 +298,81 @@ else:
                         tc_actual = actual_out
                         tc_passed = (str(actual_out).strip() == str(expected).strip())
                     elif tc_type == "variable":
-                        var_name = tc.get("variable", "")
-                        if var_name not in user_ns:
-                            tc_passed = False
-                            tc_err = f"Chưa tìm thấy biến '{var_name}' trong bài làm. Hãy khai báo biến '{var_name}'!"
+                        # Multi-scenario dynamic injection or single-run variable check
+                        if mock_vars:
+                            scenario_tree = ast.parse(__USER_CODE__)
+                            new_body = []
+                            for node in scenario_tree.body:
+                                if isinstance(node, ast.Assign):
+                                    targets = [t.id for t in node.targets if isinstance(t, ast.Name)]
+                                    if any(t in mock_vars for t in targets):
+                                        continue
+                                elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+                                    if node.target.id in mock_vars:
+                                        continue
+                                new_body.append(node)
+                            scenario_tree.body = new_body
+                            compiled = compile(scenario_tree, filename='<scenario>', mode='exec')
+                            scenario_ns = {"__name__": "__main__"}
+                            scenario_ns.update(mock_vars)
+                            exec(compiled, scenario_ns)
+
+                            if expected_vars:
+                                tc_actual = {}
+                                missing = []
+                                failed = []
+                                for k, v in expected_vars.items():
+                                    if k not in scenario_ns:
+                                        missing.append(k)
+                                    else:
+                                        act_val = scenario_ns[k]
+                                        tc_actual[k] = act_val
+                                        if not are_equal(act_val, v):
+                                            failed.append(k)
+                                if missing:
+                                    tc_passed = False
+                                    tc_err = f"Chưa tìm thấy biến: {', '.join(missing)} trong kịch bản kiểm thử."
+                                elif failed:
+                                    tc_passed = False
+                                else:
+                                    tc_passed = True
+                            else:
+                                var_name = tc.get("variable", "")
+                                if var_name not in scenario_ns:
+                                    tc_passed = False
+                                    tc_err = f"Chưa tìm thấy biến '{var_name}' trong bài làm."
+                                else:
+                                    tc_actual = scenario_ns[var_name]
+                                    tc_passed = are_equal(tc_actual, expected)
                         else:
-                            tc_actual = user_ns[var_name]
-                            tc_passed = are_equal(tc_actual, expected)
+                            # Standard check on original user namespace
+                            if expected_vars:
+                                tc_actual = {}
+                                missing = []
+                                failed = []
+                                for k, v in expected_vars.items():
+                                    if k not in user_ns:
+                                        missing.append(k)
+                                    else:
+                                        act_val = user_ns[k]
+                                        tc_actual[k] = act_val
+                                        if not are_equal(act_val, v):
+                                            failed.append(k)
+                                if missing:
+                                    tc_passed = False
+                                    tc_err = f"Chưa tìm thấy biến: {', '.join(missing)} trong bài làm."
+                                elif failed:
+                                    tc_passed = False
+                                else:
+                                    tc_passed = True
+                            else:
+                                var_name = tc.get("variable", "")
+                                if var_name not in user_ns:
+                                    tc_passed = False
+                                    tc_err = f"Chưa tìm thấy biến '{var_name}' trong bài làm. Hãy khai báo biến '{var_name}'!"
+                                else:
+                                    tc_actual = user_ns[var_name]
+                                    tc_passed = are_equal(tc_actual, expected)
                 except Exception as e:
                     e_info = friendly_error_info(e)
                     tc_err = f"{e_info['type']}: {e_info['message']}"
@@ -311,12 +382,24 @@ else:
             if not tc_passed:
                 all_passed = False
 
+            # Format input and expected labels
+            if mock_vars:
+                display_input = mock_vars
+            elif tc_type == "variable":
+                display_input = f"Biến: {tc.get('variable')}"
+            elif tc_type == "stdout":
+                display_input = "Đầu ra màn hình (print)"
+            else:
+                display_input = inputs
+
+            display_expected = expected_vars if expected_vars else expected
+
             results.append({
                 "testCaseId": tc["id"],
                 "description": tc.get("description", ""),
                 "passed": tc_passed,
-                "input": f"Biến: {tc.get('variable')}" if tc_type == "variable" else ("Đầu ra màn hình" if tc_type == "stdout" else inputs),
-                "expected": expected,
+                "input": display_input,
+                "expected": display_expected,
                 "actual": safe_serialize(tc_actual),
                 "error": tc_err,
                 "hidden": tc.get("hidden", False)

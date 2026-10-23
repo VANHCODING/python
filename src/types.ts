@@ -3,8 +3,10 @@ export type TestType = 'function' | 'stdout' | 'variable';
 export interface TestCase {
   id: string;
   description: string;
-  input?: any[]; // arguments for function calls
-  variable?: string; // variable name if type is variable
+  input?: any; // arguments for function calls or scenario description
+  variable?: string; // variable name if type is single variable
+  mockVariables?: Record<string, any>; // mock inputs to inject into script (replaces starter initializations)
+  expectedVariables?: Record<string, any>; // multiple variables to check in this scenario
   expected: any; // expected return value, string output, or variable value
   type: TestType;
   hidden?: boolean;

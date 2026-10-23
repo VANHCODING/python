@@ -9,6 +9,7 @@ import { EditorPanel } from './components/EditorPanel';
 import { ConsolePanel } from './components/ConsolePanel';
 import { SplitLayout } from './components/SplitLayout';
 import { CelebrationModal } from './components/CelebrationModal';
+import { ResetModal } from './components/ResetModal';
 import { playSuccessChime } from './utils/sound';
 
 const STORAGE_KEY = 'pymaster_progress_v1';
@@ -77,18 +78,24 @@ export function App() {
     });
   };
 
-  // Reset code to initial template
+  // Reset code modal state
+  const [showResetModal, setShowResetModal] = useState(false);
+
+  // Open reset confirmation modal
   const handleResetCode = () => {
-    if (window.confirm('Bạn có chắc muốn khôi phục mã nguồn về trạng thái mặc định của bài học này?')) {
-      const defaultCode = currentLesson.starterCode;
-      setCode(defaultCode);
-      saveProgress({
-        savedCode: {
-          ...progress.savedCode,
-          [currentLesson.id]: defaultCode,
-        },
-      });
-    }
+    setShowResetModal(true);
+  };
+
+  // Perform actual reset after confirmation
+  const handleConfirmReset = () => {
+    const defaultCode = currentLesson.starterCode;
+    setCode(defaultCode);
+    saveProgress({
+      savedCode: {
+        ...progress.savedCode,
+        [currentLesson.id]: defaultCode,
+      },
+    });
   };
 
   // Pyodide Runner Hook
@@ -233,10 +240,19 @@ export function App() {
               activeTab={consoleTab}
               onTabChange={setConsoleTab}
               onClear={resetOutputs}
+              isRunning={isRunning}
+              isTesting={isTesting}
             />
           }
         />
       </div>
+
+      {/* Confirmation Modal before resetting student code */}
+      <ResetModal
+        isOpen={showResetModal}
+        onConfirm={handleConfirmReset}
+        onClose={() => setShowResetModal(false)}
+      />
 
       {/* Celebration Modal when all tests pass */}
       <CelebrationModal
