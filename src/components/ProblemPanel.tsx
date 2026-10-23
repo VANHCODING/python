@@ -68,7 +68,7 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
         return (
           <code
             key={i}
-            className="bg-zinc-800 text-emerald-300 px-1.5 py-0.5 rounded text-[11px] font-mono font-medium border border-zinc-750"
+            className="bg-zinc-800 text-emerald-300 px-1.5 py-0.5 rounded text-[11px] font-mono font-medium border border-zinc-750 whitespace-nowrap"
           >
             {part.slice(1, -1)}
           </code>
@@ -107,12 +107,12 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
         const headers = rows[0];
         const dataRows = rows.slice(2);
         elements.push(
-          <div key={`table-${elements.length}`} className="overflow-x-auto my-3 border border-zinc-800 rounded-lg">
-            <table className="w-full text-xs text-left text-zinc-300">
+          <div key={`table-${elements.length}`} className="overflow-x-auto my-3 border border-zinc-800 rounded-lg custom-scrollbar">
+            <table className="min-w-[560px] w-full text-xs text-left text-zinc-300 border-collapse">
               <thead className="bg-zinc-900/90 text-zinc-200">
                 <tr>
                   {headers.map((h, hi) => (
-                    <th key={hi} className="p-2.5 border-b border-zinc-800 font-semibold">
+                    <th key={hi} className="p-2.5 border-b border-zinc-800 font-semibold whitespace-nowrap">
                       {h}
                     </th>
                   ))}
@@ -122,7 +122,7 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
                 {dataRows.map((dr, ri) => (
                   <tr key={ri} className="hover:bg-zinc-900/40">
                     {dr.map((c, ci) => (
-                      <td key={ci} className="p-2.5">
+                      <td key={ci} className="p-2.5 align-middle">
                         {renderInline(c)}
                       </td>
                     ))}
@@ -361,6 +361,13 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
 
             {lesson.hints.map((hint, idx) => {
               const isRevealed = revealedHints.includes(idx);
+              const hintTitles = [
+                'Cấp 1: Hướng tư duy logic',
+                'Cấp 2: Cú pháp & biểu thức gợi ý',
+                'Cấp 3: Chi tiết sát đáp án',
+              ];
+              const hintLabel = hintTitles[idx] || `Gợi ý ${idx + 1}`;
+
               return (
                 <div key={idx} className="border border-zinc-800 rounded-lg overflow-hidden bg-zinc-900/30">
                   <button
@@ -369,7 +376,7 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
                   >
                     <div className="flex items-center gap-2">
                       <Lightbulb className={`w-4 h-4 ${isRevealed ? 'text-amber-400' : 'text-zinc-500'}`} />
-                      <span className="text-xs font-medium text-zinc-200">Gợi ý #{idx + 1}</span>
+                      <span className="text-xs font-medium text-zinc-200">{hintLabel}</span>
                     </div>
                     {isRevealed ? (
                       <ChevronDown className="w-4 h-4 text-zinc-500" />

@@ -20,12 +20,31 @@ export function App() {
     return CURRICULUM.flatMap((m) => m.lessons);
   }, []);
 
-  // Initialize progress from localStorage
+  // Initialize progress from localStorage & URL Hash
   const [progress, setProgress] = useState<UserProgress>(() => {
+    let initialLessonId = allLessons[0]?.id || 'lesson-1';
+
+    // Priority 1: Check URL Hash (e.g. #/module-2/lesson-5 or #lesson-5)
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hashClean = window.location.hash.replace(/^#\/?/, '');
+      const candidate = hashClean.split('/').pop()?.trim();
+      const found = allLessons.find((l) => l.id === candidate || hashClean.includes(l.id));
+      if (found) {
+        initialLessonId = found.id;
+      }
+    }
+
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return {
+          ...parsed,
+          currentLessonId:
+            initialLessonId !== (allLessons[0]?.id || 'lesson-1')
+              ? initialLessonId
+              : parsed.currentLessonId || initialLessonId,
+        };
       }
     } catch (e) {
       console.warn('Could not load progress from localStorage', e);
@@ -33,7 +52,7 @@ export function App() {
     return {
       completedLessonIds: [],
       savedCode: {},
-      currentLessonId: allLessons[0]?.id || 'lesson-1',
+      currentLessonId: initialLessonId,
       theme: 'dark',
     };
   });
@@ -153,6 +172,60 @@ export function App() {
     return null;
   }, [allLessons, currentIndex]);
 
+  // Sync URL Hash whenever current lesson changes (e.g. #/module-2/lesson-5)
+  useEffect(() => {
+    const targetHash = `#/${currentLesson.moduleId}/${currentLesson.id}`;
+    if (window.location.hash !== targetHash) {
+      window.history.replaceState(null, '', targetHash);
+    }
+  }, [currentLesson.id, currentLesson.moduleId]);
+
+  // Listen to browser Back/Forward (hashchange)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hashClean = window.location.hash.replace(/^#\/?/, '');
+      const candidate = hashClean.split('/').pop()?.trim();
+      const found = allLessons.find((l) => l.id === candidate || hashClean.includes(l.id));
+      if (found && found.id !== progress.currentLessonId) {
+        resetOutputs();
+        setProgress((prev) => ({ ...prev, currentLessonId: found.id }));
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [allLessons, progress.currentLessonId, resetOutputs]);
+
+  // Export progress as JSON
+  const handleExportProgress = () => {
+    const dataStr =
+      'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(progress, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute(
+      'download',
+      `pymaster_progress_${new Date().toISOString().slice(0, 10)}.json`
+    );
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  // Import progress from JSON
+  const handleImportProgress = (importedProgress: UserProgress) => {
+    if (importedProgress && Array.isArray(importedProgress.completedLessonIds)) {
+      setProgress(importedProgress);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(importedProgress));
+        alert('🎉 Đã nạp tiến độ học tập thành công!');
+      } catch (e) {
+        console.warn('Failed to save imported progress', e);
+      }
+    } else {
+      alert('⚠️ File tiến độ không đúng định dạng!');
+    }
+  };
+
   // Select lesson from sidebar or modal
   const handleSelectLesson = (lesson: Lesson) => {
     resetOutputs();
@@ -205,6 +278,8 @@ export function App() {
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           onSelectLesson={handleSelectLesson}
+          onExportProgress={handleExportProgress}
+          onImportProgress={handleImportProgress}
         />
 
         <SplitLayout
@@ -222,6 +297,7 @@ export function App() {
             <EditorPanel
               code={code}
               lessonId={currentLesson.id}
+              lesson={currentLesson}
               onChange={handleCodeChange}
               onRunCode={handleRunCode}
               onSubmitTest={handleSubmitTest}

@@ -216,11 +216,11 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({
                         </span>
                       </div>
 
-                      {/* Details */}
-                      <div className="font-mono text-[11px] bg-zinc-950/60 p-2 rounded border border-zinc-800/80 space-y-1">
-                        <div>
-                          <span className="text-zinc-500">Đầu vào (Input): </span>
-                          <span className="text-zinc-300">
+                      {/* Details: Side-by-side comparison */}
+                      <div className="font-mono text-[11px] bg-zinc-950/70 p-2.5 rounded-lg border border-zinc-800 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-zinc-500 font-sans text-xs">Đầu vào (Input):</span>
+                          <span className="text-zinc-200 font-semibold bg-zinc-900 px-2 py-0.5 rounded border border-zinc-750">
                             {tr.hidden
                               ? '[Bảo mật / Test ẩn]'
                               : typeof tr.input === 'object' && tr.input !== null && !Array.isArray(tr.input)
@@ -228,26 +228,51 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({
                               : formatPythonValue(tr.input, false)}
                           </span>
                         </div>
-                        <div>
-                          <span className="text-zinc-500">Kỳ vọng (Expected): </span>
-                          <span className="text-amber-300">
-                            {typeof tr.expected === 'object' && tr.expected !== null && !Array.isArray(tr.expected)
-                              ? formatVariableMap(tr.expected)
-                              : formatPythonValue(tr.expected, false)}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-zinc-500">Thực tế (Actual): </span>
-                          <span className={tr.passed ? 'text-emerald-300' : 'text-rose-300 font-semibold'}>
-                            {typeof tr.actual === 'object' && tr.actual !== null && !Array.isArray(tr.actual)
-                              ? formatVariableMap(tr.actual)
-                              : formatPythonValue(tr.actual, false)}
-                          </span>
+
+                        {/* Side by side Expected vs Actual */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-zinc-850">
+                          {/* Expected Column */}
+                          <div className="p-2 rounded bg-zinc-900/60 border border-zinc-800 space-y-1">
+                            <div className="text-[10px] uppercase font-sans text-amber-400/80 font-bold tracking-wider">
+                              Kỳ vọng (Expected)
+                            </div>
+                            <div className="text-amber-300 font-mono text-xs whitespace-pre-wrap">
+                              {typeof tr.expected === 'object' && tr.expected !== null && !Array.isArray(tr.expected)
+                                ? formatVariableMap(tr.expected)
+                                : formatPythonValue(tr.expected, false)}
+                            </div>
+                          </div>
+
+                          {/* Actual Column */}
+                          <div
+                            className={`p-2 rounded border space-y-1 ${
+                              tr.passed
+                                ? 'bg-emerald-500/10 border-emerald-500/30'
+                                : 'bg-rose-500/10 border-rose-500/30'
+                            }`}
+                          >
+                            <div
+                              className={`text-[10px] uppercase font-sans font-bold tracking-wider ${
+                                tr.passed ? 'text-emerald-400' : 'text-rose-400'
+                              }`}
+                            >
+                              Thực tế (Actual)
+                            </div>
+                            <div
+                              className={`font-mono text-xs whitespace-pre-wrap ${
+                                tr.passed ? 'text-emerald-300' : 'text-rose-300 font-bold'
+                              }`}
+                            >
+                              {typeof tr.actual === 'object' && tr.actual !== null && !Array.isArray(tr.actual)
+                                ? formatVariableMap(tr.actual)
+                                : formatPythonValue(tr.actual, false)}
+                            </div>
+                          </div>
                         </div>
 
                         {tr.error && (
-                          <div className="pt-2 text-rose-400 font-sans border-t border-zinc-800/80 mt-2 whitespace-pre-wrap">
-                            <span className="font-bold text-xs">Lỗi: </span>
+                          <div className="pt-2 text-rose-400 font-sans border-t border-zinc-800/80 whitespace-pre-wrap text-xs">
+                            <span className="font-bold">Lỗi phát sinh: </span>
                             {tr.error}
                           </div>
                         )}

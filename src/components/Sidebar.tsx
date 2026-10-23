@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Module, Lesson } from '../types';
+import React, { useState, useRef } from 'react';
+import { Module, Lesson, UserProgress } from '../types';
 import {
   CheckCircle2,
   Circle,
@@ -16,6 +16,9 @@ import {
   Sparkles,
   ShieldAlert,
   Cpu,
+  Download,
+  Upload,
+  Save,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,6 +28,8 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectLesson: (lesson: Lesson) => void;
+  onExportProgress?: () => void;
+  onImportProgress?: (data: UserProgress) => void;
 }
 
 const iconMap: Record<string, any> = {
@@ -45,7 +50,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
   onSelectLesson,
+  onExportProgress,
+  onImportProgress,
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        if (onImportProgress) {
+          onImportProgress(json);
+        }
+      } catch (err) {
+        alert('File không hợp lệ! Vui lòng chọn file JSON tiến độ.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>(() => {
     // Default open all modules
     const initial: Record<string, boolean> = {};
@@ -65,23 +92,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
   if (!isOpen) return null;
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 w-80 bg-zinc-950 border-r border-zinc-800/80 shadow-2xl flex flex-col h-full pt-14 md:relative md:pt-0 md:h-full overflow-hidden flex-shrink-0 select-none">
-      {/* Top Header */}
-      <div className="p-3.5 border-b border-zinc-800/80 flex items-center justify-between flex-shrink-0 bg-zinc-950">
-        <div className="flex items-center gap-2">
-          <BookMarked className="w-4 h-4 text-emerald-400" />
-          <h2 className="text-sm font-semibold text-zinc-100 tracking-tight">Mục lục lộ trình</h2>
-        </div>
-        <button
-          onClick={onClose}
-          className="p-1 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
+    <>
+      {/* Backdrop overlay */}
+      <div
+        onClick={onClose}
+        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-200"
+      />
 
-      {/* Module & Lesson List - Independent scroll container */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar overscroll-contain">
+      {/* Drawer Sidebar */}
+      <aside className="fixed inset-y-0 left-0 z-50 w-80 sm:w-96 bg-zinc-950 border-r border-zinc-800 shadow-2xl flex flex-col h-full overflow-hidden select-none animate-in slide-in-from-left duration-200">
+        {/* Top Header */}
+        <div className="p-3.5 border-b border-zinc-800/80 flex items-center justify-between flex-shrink-0 bg-zinc-950">
+          <div className="flex items-center gap-2">
+            <BookMarked className="w-4 h-4 text-emerald-400" />
+            <h2 className="text-sm font-semibold text-zinc-100 tracking-tight">Mục lục lộ trình (19 bài)</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60 transition-colors"
+            title="Đóng mục lục"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Module & Lesson List - Independent scroll container */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar overscroll-contain">
         {modules.map((mod) => {
           const IconComponent = iconMap[mod.icon] || Box;
           const isExpanded = !!expandedModules[mod.id];
@@ -126,10 +162,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         key={lesson.id}
                         onClick={() => {
                           onSelectLesson(lesson);
-                          if (window.innerWidth < 768) {
-                            onClose();
-                          }
+                          onClose();
                         }}
+                        title={lesson.title}
                         className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center gap-2.5 transition-all ${
                           isCurrent
                             ? 'bg-emerald-500/15 text-emerald-300 font-medium border border-emerald-500/30 shadow-sm'
@@ -153,6 +188,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
           );
         })}
       </div>
+
+      {/* Footer: Auto-save status & Export / Import progress */}
+      <div className="p-3 border-t border-zinc-800/80 bg-zinc-950 text-xs space-y-2 flex-shrink-0">
+        <div className="flex items-center justify-between text-[11px] text-zinc-400">
+          <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Tự động lưu bài làm (Local)
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 pt-1">
+          {onExportProgress && (
+            <button
+              onClick={onExportProgress}
+              className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-[11px] font-medium border border-zinc-800 transition-colors"
+              title="Sao lưu toàn bộ code và tiến độ ra file JSON"
+            >
+              <Download className="w-3.5 h-3.5 text-zinc-400" />
+              <span>Export (.json)</span>
+            </button>
+          )}
+
+          {onImportProgress && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json,application/json"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-[11px] font-medium border border-zinc-800 transition-colors"
+                title="Nhập file JSON tiến độ đã lưu trước đó"
+              >
+                <Upload className="w-3.5 h-3.5 text-zinc-400" />
+                <span>Import (.json)</span>
+              </button>
+            </>
+          )}
+        </div>
+      </div>
     </aside>
+    </>
   );
 };

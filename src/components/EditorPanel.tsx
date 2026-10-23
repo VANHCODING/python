@@ -1,10 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Editor, { OnMount } from '@monaco-editor/react';
-import { Play, Send, Loader2, Sparkles, Download, Copy, Check } from 'lucide-react';
+import { Play, Send, Loader2, Sparkles, Download, Copy, Check, Target, ChevronDown } from 'lucide-react';
+import { Lesson } from '../types';
+import { formatPythonValue } from '../utils/format';
 
 interface EditorPanelProps {
   code: string;
   lessonId: string;
+  lesson?: Lesson;
   onChange: (value: string) => void;
   onRunCode: () => void;
   onSubmitTest: () => void;
@@ -19,6 +22,7 @@ interface EditorPanelProps {
 export const EditorPanel: React.FC<EditorPanelProps> = ({
   code,
   lessonId,
+  lesson,
   onChange,
   onRunCode,
   onSubmitTest,
@@ -30,6 +34,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
 }) => {
   const editorRef = useRef<any>(null);
   const [copied, setCopied] = useState(false);
+  const [showChallengePin, setShowChallengePin] = useState(true);
 
   const isMac =
     typeof window !== 'undefined' &&
@@ -168,6 +173,70 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
         </div>
       </div>
 
+      {/* Pinned Challenge Requirement Bar above Editor */}
+      {lesson && (
+        <div className="bg-zinc-900/95 border-b border-zinc-800 text-xs select-none">
+          <div
+            onClick={() => setShowChallengePin(!showChallengePin)}
+            className="px-3 py-1.5 flex items-center justify-between cursor-pointer hover:bg-zinc-800/60 transition-colors text-zinc-300"
+          >
+            <div className="flex items-center gap-2 truncate">
+              <span className="flex items-center gap-1 font-semibold text-emerald-400 flex-shrink-0">
+                <Target className="w-3.5 h-3.5" />
+                <span>Thử thách:</span>
+              </span>
+              <span className="truncate text-zinc-200 font-medium">{lesson.summary}</span>
+            </div>
+            <button
+              className="flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-200 flex-shrink-0 ml-2"
+              title="Đóng / mở chi tiết đề bài"
+            >
+              <span>{showChallengePin ? 'Thu gọn' : 'Xem đề'}</span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform ${showChallengePin ? 'rotate-180' : ''}`}
+              />
+            </button>
+          </div>
+
+          {showChallengePin && (
+            <div className="p-3 bg-zinc-950/90 border-t border-zinc-800/60 space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+              <p className="text-zinc-300 leading-relaxed font-sans">{lesson.summary}</p>
+              {lesson.targetFunction && (
+                <div className="flex items-center gap-2 font-mono text-xs">
+                  <span className="text-zinc-400">Hàm cần định nghĩa:</span>
+                  <span className="text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                    def {lesson.targetFunction}(...)
+                  </span>
+                </div>
+              )}
+              {lesson.testCases.filter((t) => !t.hidden).length > 0 && (
+                <div className="space-y-1 font-mono text-[11px] pt-1">
+                  <span className="text-zinc-500">Mục tiêu kiểm thử mẫu:</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                    {lesson.testCases
+                      .filter((t) => !t.hidden)
+                      .slice(0, 4)
+                      .map((tc, idx) => (
+                        <div
+                          key={idx}
+                          className="text-zinc-400 bg-zinc-900/60 p-1.5 rounded border border-zinc-800/60 flex items-center justify-between"
+                        >
+                          <span className="text-zinc-300 truncate max-w-[200px]" title={tc.description}>
+                            {tc.description}
+                          </span>
+                          <span className="text-amber-400 font-semibold ml-2">
+                            {formatPythonValue(tc.expected, false)}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Monaco Editor Container */}
       <div className="flex-1 min-h-0 relative">
         <Editor
@@ -180,7 +249,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           options={{
             fontSize: 13.5,
             fontFamily: '"JetBrains Mono", "Fira Code", Consolas, monospace',
-            fontLigatures: true,
+            fontLigatures: false,
             tabSize: 4,
             insertSpaces: true,
             minimap: { enabled: false },

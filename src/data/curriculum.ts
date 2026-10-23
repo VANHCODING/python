@@ -306,7 +306,7 @@ reversed_str = "PYTHON"[::-1]
         moduleId: 'module-2',
         order: 1,
         title: 'Bài 5: Boolean, Toán tử So sánh & Logic (and, or, not)',
-        summary: 'Các toán tử so sánh (==, !=, <, >), logic Boolean và cơ chế ngắn mạch.',
+        summary: 'Toán tử so sánh (==, !=, <, >), logic Boolean (and, or, not), thứ tự ưu tiên và cơ chế ngắn mạch.',
         concept: 'Boolean Logic & Comparison Operators',
         theoryMarkdown: `### 🎯 Toán tử so sánh & Logic Boolean
 
@@ -328,27 +328,43 @@ Kiểu \`bool\` chỉ có 2 giá trị duy nhất: \`True\` (Đúng) hoặc \`Fa
 
 > 🚨 **Cảnh báo lỗi cú pháp**: Trong code Python **hoàn toàn không có** các ký tự toán học như \`≠\`, \`≥\`, \`≤\`. Nếu viết vào trình soạn thảo, Python sẽ lập tức báo lỗi \`SyntaxError: invalid character\`. Hãy luôn gõ đúng chuẩn: \`!=\`, \`>=\`, \`<=\`.
 
-#### 🔗 2. Các toán tử logic & Cơ chế ngắn mạch (Short-circuit):
+#### 🔗 2. Các toán tử logic:
 - \`and\`: Trả về \`True\` khi **CẢ HAI** vế đều là \`True\`.
-  - **Cơ chế ngắn mạch (*Short-circuit*)**: Nếu vế đầu tiên là \`False\`, Python dừng kiểm tra ngay lập tức và trả về \`False\` luôn mà không cần tính tiếp vế thứ hai (bởi vì chỉ cần 1 vế sai thì toàn bộ biểu thức \`and\` chắc chắn sai).
 - \`or\`: Trả về \`True\` khi **ÍT NHẤT MỘT** vế là \`True\`.
-  - **Cơ chế ngắn mạch (*Short-circuit*)**: Nếu vế đầu tiên là \`True\`, Python dừng kiểm tra ngay lập tức và trả về \`True\` luôn mà không cần tính tiếp vế thứ hai.
 - \`not\`: Đảo ngược giá trị logic (\`not True\` thành \`False\`, \`not False\` thành \`True\`).
 
-\`\`\`python
-age = 20
-has_license = True
-# Kết hợp biểu thức:
-can_drive = (age >= 18) and has_license  # True
-\`\`\``,
+#### ⚡ 3. Thứ tự ưu tiên toán tử logic:
+Khi kết hợp nhiều toán tử trong một biểu thức, Python ưu tiên tính:
+$$\\text{not} \\quad > \\quad \\text{and} \\quad > \\quad \\text{or}$$
+> 💡 **Kinh nghiệm lập trình (Best Practice)**: Hãy luôn dùng cặp ngoặc tròn \`( )\` để gom nhóm điều kiện (ví dụ: \`(has_ticket or is_vip) and is_adult\`). Cách này vừa giúp code sáng sủa, vừa tránh nhầm lẫn về thứ tự ưu tiên!
+
+#### 🧠 4. Cơ chế ngắn mạch (Short-circuit Evaluation):
+- \`and\` dừng kiểm tra ngay khi gặp vế đầu là \`False\` (vì biểu thức chắc chắn \`False\`).
+- \`or\` dừng kiểm tra ngay khi gặp vế đầu là \`True\` (vì chỉ cần 1 vế đúng là cả biểu thức \`True\`).
+- **Ứng dụng an toàn**: Giúp tránh lỗi sập chương trình. Ví dụ: \`user is not None and user.is_active\` sẽ không bao giờ bị lỗi \`AttributeError\` nếu \`user\` là \`None\`!
+
+#### 🔍 5. Những cạm bẫy hay gặp:
+- **So sánh chuỗi liên hoàn (Chained Comparison)**: Python cho phép viết cực kỳ toán học: \`18 <= age <= 60\` thay vì phải viết \`age >= 18 and age <= 60\`.
+- **\`==\` khác với \`is\`**: \`==\` so sánh **giá trị** (\`[1, 2] == [1, 2]\` là \`True\`), còn \`is\` so sánh **định danh ô nhớ** (*identity*). Với \`None\`, chuẩn Python luôn dùng \`x is None\`.
+- **Sai số số thực (Float Precision)**: Do biểu diễn nhị phân, \`0.1 + 0.2 == 0.3\` là \`False\`! Hãy dùng \`abs(a - b) < 1e-9\` khi so sánh số thực.`,
         starterCode: `# Bài 5: Biểu thức logic Boolean
 age = 20
 has_ticket = True
 is_vip = False
 
+# 💡 LƯU Ý QUAN TRỌNG VỀ HỆ THỐNG CHẤM:
+# Đoạn code trên khởi tạo giá trị ban đầu để bạn chạy thử nghiệm (Ctrl+Enter).
+# Khi bấm "Nộp bài & Chấm", hệ thống sẽ tự động nạp 4 kịch bản tuổi & vé khác nhau:
+#   Test 1: age = 16, has_ticket = True, is_vip = False  -> is_adult: False, can_enter: False
+#   Test 2: age = 25, has_ticket = False, is_vip = True   -> is_adult: True,  can_enter: True
+#   Test 3: age = 30, has_ticket = False, is_vip = False  -> is_adult: True,  can_enter: False
+#   Test 4: age = 20, has_ticket = True, is_vip = False   -> is_adult: True,  can_enter: True
+# Vì vậy hãy viết biểu thức logic tổng quát theo tên biến, KHÔNG gán cứng True/False!
+
 # Thử thách:
 # 1. Khai báo biến is_adult kiểm tra xem age có lớn hơn hoặc bằng 18 không (dùng >=)
 # 2. Khai báo biến can_enter: điều kiện vào cổng là (có vé has_ticket HOẶC là khách is_vip) VÀ phải là người lớn is_adult
+# Gợi ý: Dùng ngoặc tròn (has_ticket or is_vip) and is_adult
 
 # Viết code của bạn ở đây:
 `,

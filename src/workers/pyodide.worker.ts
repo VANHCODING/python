@@ -60,7 +60,14 @@ def friendly_error_info(exc):
     if err_type == "IndentationError":
         hint = "💡 Gợi ý: Lỗi thụt lề! Trong Python, các câu lệnh trong cùng khối (sau dấu :, if, def, for...) phải thụt lề đều nhau (chuẩn 4 dấu cách)."
     elif err_type == "SyntaxError":
-        hint = "💡 Gợi ý: Lỗi cú pháp! Kiểm tra xem bạn có quên dấu hai chấm ':', quên đóng ngoặc ')' hay dấu nháy kép không."
+        if "cannot assign to" in msg or "invalid syntax. Maybe you meant '=='" in msg:
+            hint = "💡 Gợi ý: Bạn đang dùng dấu bằng đơn '=' trong biểu thức so sánh! Trong Python, so sánh bằng bắt buộc phải dùng hai dấu bằng '=='."
+        elif "invalid character" in msg or any(c in msg for c in ['≠', '≥', '≤']):
+            hint = "💡 Gợi ý: Phát hiện ký hiệu toán học (≠, ≥, ≤)! Trong code Python không có các ký tự này, hãy dùng: '!=', '>=', '<='."
+        elif "expected ':'" in msg:
+            hint = "💡 Gợi ý: Thiếu dấu hai chấm ':' ở cuối dòng câu lệnh (if, elif, else, for, while, def)!"
+        else:
+            hint = "💡 Gợi ý: Lỗi cú pháp! Kiểm tra xem bạn có quên dấu hai chấm ':', quên đóng ngoặc ')' hay dấu nháy kép không."
     elif err_type == "NameError":
         hint = f"💡 Gợi ý: Bạn đang gọi một biến hoặc hàm chưa được định nghĩa. Hãy kiểm tra lại lỗi chính tả."
     elif err_type == "TypeError":

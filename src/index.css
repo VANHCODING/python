@@ -55,6 +55,12 @@
 }
 
 /* Markdown styling inside theory tab */
+/* Disable font ligatures across all code blocks and inline code so == != >= <= are not merged into single glyphs */
+code, pre, kbd, samp, .font-mono, .monaco-editor, .monaco-editor * {
+  font-variant-ligatures: none !important;
+  font-feature-settings: "liga" 0, "calt" 0 !important;
+}
+
 .prose-custom h3 {
   @apply text-lg font-bold text-zinc-100 mt-4 mb-2 flex items-center gap-2;
 }
