@@ -411,6 +411,33 @@ can_enter = (has_ticket or is_vip) and is_adult
             expectedVariables: { is_adult: true, can_enter: true },
             expected: { is_adult: true, can_enter: true },
           },
+          {
+            id: 'tc-5-5',
+            description: 'Test 5 (Biên): age = 18 (vừa tròn 18 tuổi), has_ticket = True, is_vip = False',
+            type: 'variable',
+            hidden: true,
+            mockVariables: { age: 18, has_ticket: true, is_vip: false },
+            expectedVariables: { is_adult: true, can_enter: true },
+            expected: { is_adult: true, can_enter: true },
+          },
+          {
+            id: 'tc-5-6',
+            description: 'Test 6 (Biên): age = 17 (17 tuổi khách VIP, chưa đủ tuổi người lớn)',
+            type: 'variable',
+            hidden: true,
+            mockVariables: { age: 17, has_ticket: false, is_vip: true },
+            expectedVariables: { is_adult: false, can_enter: false },
+            expected: { is_adult: false, can_enter: false },
+          },
+          {
+            id: 'tc-5-7',
+            description: 'Test 7 (Biên): age = 18 (đủ 18 nhưng không có vé và không VIP)',
+            type: 'variable',
+            hidden: true,
+            mockVariables: { age: 18, has_ticket: false, is_vip: false },
+            expectedVariables: { is_adult: true, can_enter: false },
+            expected: { is_adult: true, can_enter: false },
+          },
         ],
       },
       {
@@ -420,7 +447,7 @@ can_enter = (has_ticket or is_vip) and is_adult
         title: 'Bài 6: Câu lệnh if - elif - else & Thụt lề (Indentation)',
         summary: 'Điều khiển luồng thực thi và quy tắc thụt lề 4 dấu cách bắt buộc trong Python.',
         concept: 'Conditional Branches & Indentation Blocks',
-        theoryMarkdown: `### 🌲 Luồng điều khiển: if - elif - else
+        theoryMarkdown: `### 🌲 Luồng điều khiển: if - elif - else (Asabeneh Day 9)
 
 Không giống các ngôn ngữ dùng ngoặc nhọn \`{ }\`, **Python dùng Thụt lề (Indentation)** để phân định khối lệnh:
 
@@ -439,10 +466,31 @@ else:
     grade = "Yếu"
 \`\`\`
 
-#### ⚠️ Quy tắc sống còn về Thụt lề:
+#### ⚠️ 1. Quy tắc sống còn về Thụt lề (PEP 8 Indentation):
 - Sau \`if\`, \`elif\`, \`else\` **bắt buộc phải có dấu hai chấm \`:\`**.
-- Các câu lệnh bên trong khối phải thụt lề đều nhau (chuẩn là **4 dấu phím cách Space**).
-- Khối lệnh \`elif\` chỉ được xét khi tất cả các điều kiện phía trên nó đều là \`False\`.`,
+- Các câu lệnh bên trong khối phải thụt lề đều nhau (chuẩn vàng PEP 8 là **4 dấu phím cách Space**).
+- **Tuyệt đối không trộn Tab và Phím cách (Space)** — điều này sẽ gây lỗi \`TabError: inconsistent use of tabs and spaces in indentation\`.
+- Khi viết trong PyMaster, phím Tab đã được cấu hình tự động chèn 4 dấu cách chuẩn.
+
+#### 🪤 2. Cạm bẫy thứ tự đánh giá trong \`elif\` (Top-to-Bottom Trap):
+- Python duyệt các nhánh \`if\` - \`elif\` tuần tự **từ trên xuống dưới**. Nhánh nào thỏa mãn trước sẽ chạy và **ngắt toàn bộ các nhánh còn lại**.
+- **Sai lầm phổ biến**: Đặt điều kiện lỏng phía trên điều kiện chặt:
+  \`\`\`python
+  # ❌ SAI: score = 9.5 sẽ rơi vào nhánh >= 5.0 đầu tiên!
+  if score >= 5.0:
+      grade = "Trung bình"
+  elif score >= 8.0:
+      grade = "Giỏi"
+  elif score >= 9.0:
+      grade = "Xuất sắc"
+  \`\`\`
+- **Quy tắc**: Khi phân loại giá trị tăng/giảm dần, hãy luôn sắp xếp điều kiện từ **chặt nhất đến lỏng nhất** (hoặc ngược lại có chặn trên dưới).
+
+#### ⚡ 3. Toán tử ba ngôi (Ternary Operator / Conditional Expression):
+Với phép gán điều kiện ngắn gọn, Python hỗ trợ cú pháp viết trên một dòng:
+\`\`\`python
+status = "Đỗ" if score >= 5.0 else "Trượt"
+\`\`\``,
         starterCode: `# Bài 6: Phân loại điểm số với if - elif - else
 score = 8.5
 grade = ""
@@ -511,6 +559,69 @@ else:
             description: 'Kịch bản 5: score = 3.5 -> grade = "Yeu"',
             type: 'variable',
             mockVariables: { score: 3.5 },
+            expectedVariables: { grade: 'Yeu' },
+            expected: 'Yeu',
+          },
+          {
+            id: 'tc-6-6',
+            description: 'Test 6 (Biên): score = 9.0 (mốc chuẩn Xuất sắc)',
+            type: 'variable',
+            hidden: true,
+            mockVariables: { score: 9.0 },
+            expectedVariables: { grade: 'Xuat sac' },
+            expected: 'Xuat sac',
+          },
+          {
+            id: 'tc-6-7',
+            description: 'Test 7 (Biên): score = 8.0 (mốc chuẩn Giỏi)',
+            type: 'variable',
+            hidden: true,
+            mockVariables: { score: 8.0 },
+            expectedVariables: { grade: 'Gioi' },
+            expected: 'Gioi',
+          },
+          {
+            id: 'tc-6-8',
+            description: 'Test 8 (Biên): score = 6.5 (mốc chuẩn Khá)',
+            type: 'variable',
+            hidden: true,
+            mockVariables: { score: 6.5 },
+            expectedVariables: { grade: 'Kha' },
+            expected: 'Kha',
+          },
+          {
+            id: 'tc-6-9',
+            description: 'Test 9 (Biên): score = 5.0 (mốc chuẩn Trung bình)',
+            type: 'variable',
+            hidden: true,
+            mockVariables: { score: 5.0 },
+            expectedVariables: { grade: 'Trung binh' },
+            expected: 'Trung binh',
+          },
+          {
+            id: 'tc-6-10',
+            description: 'Test 10 (Biên): score = 4.99 (cận kề 5.0 nhưng vẫn Yếu)',
+            type: 'variable',
+            hidden: true,
+            mockVariables: { score: 4.99 },
+            expectedVariables: { grade: 'Yeu' },
+            expected: 'Yeu',
+          },
+          {
+            id: 'tc-6-11',
+            description: 'Test 11 (Cực trị): score = 10.0 (điểm tối đa)',
+            type: 'variable',
+            hidden: true,
+            mockVariables: { score: 10.0 },
+            expectedVariables: { grade: 'Xuat sac' },
+            expected: 'Xuat sac',
+          },
+          {
+            id: 'tc-6-12',
+            description: 'Test 12 (Cực trị): score = 0.0 (điểm tối thiểu)',
+            type: 'variable',
+            hidden: true,
+            mockVariables: { score: 0.0 },
             expectedVariables: { grade: 'Yeu' },
             expected: 'Yeu',
           },

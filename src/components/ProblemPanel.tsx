@@ -13,7 +13,8 @@ import {
   Copy,
   Check,
   ChevronLeft,
-  AlertTriangle
+  AlertTriangle,
+  Play,
 } from 'lucide-react';
 
 interface ProblemPanelProps {
@@ -23,6 +24,7 @@ interface ProblemPanelProps {
   onNextLesson?: () => void;
   hasPrev?: boolean;
   hasNext?: boolean;
+  onTryCode?: (code: string) => void;
 }
 
 export const ProblemPanel: React.FC<ProblemPanelProps> = ({
@@ -32,6 +34,7 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
   onNextLesson,
   hasPrev,
   hasNext,
+  onTryCode,
 }) => {
   const [activeTab, setActiveTab] = useState<'theory' | 'problem' | 'hints'>('theory');
   const [revealedHints, setRevealedHints] = useState<number[]>([]);
@@ -146,23 +149,37 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
             <div key={`code-${idx}`} className="my-3 rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900/90 group">
               <div className="px-3 py-1.5 bg-zinc-900 text-[10px] text-zinc-400 font-mono border-b border-zinc-800 flex items-center justify-between">
                 <span>{codeLang || 'python'}</span>
-                <button
-                  onClick={() => copyToClipboard(rawCode, idx)}
-                  className="flex items-center gap-1 text-[10px] text-zinc-400 hover:text-zinc-200 px-1.5 py-0.5 rounded hover:bg-zinc-800 transition-colors"
-                  title="Sao chép mã"
-                >
-                  {isCopied ? (
-                    <>
-                      <Check className="w-3 h-3 text-emerald-400" />
-                      <span className="text-emerald-400">Đã chép</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3 h-3" />
-                      <span>Sao chép</span>
-                    </>
+                <div className="flex items-center gap-1.5">
+                  {onTryCode && (
+                    <button
+                      onClick={() => onTryCode(rawCode)}
+                      className="flex items-center gap-1 text-[10px] text-emerald-400 hover:text-emerald-300 px-1.5 py-0.5 rounded hover:bg-emerald-500/10 border border-emerald-500/20 transition-colors"
+                      title="Nạp đoạn code mẫu này vào Editor để chạy thử"
+                      aria-label="Thử ngay đoạn code này"
+                    >
+                      <Play className="w-2.5 h-2.5 fill-emerald-400" />
+                      <span>Thử ngay</span>
+                    </button>
                   )}
-                </button>
+                  <button
+                    onClick={() => copyToClipboard(rawCode, idx)}
+                    className="flex items-center gap-1 text-[10px] text-zinc-400 hover:text-zinc-200 px-1.5 py-0.5 rounded hover:bg-zinc-800 transition-colors"
+                    title="Sao chép mã nguồn"
+                    aria-label="Sao chép mã"
+                  >
+                    {isCopied ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-400" />
+                        <span className="text-emerald-400">Đã chép</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Sao chép</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
               <pre className="p-3 text-xs font-mono text-emerald-300 overflow-x-auto">
                 <code>{rawCode}</code>
@@ -237,37 +254,49 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
     <div className="h-full flex flex-col bg-zinc-950 border-r border-zinc-800/80 overflow-hidden">
       {/* Tab Navigation */}
       <div className="flex items-center justify-between border-b border-zinc-800/80 bg-zinc-950 px-3 pt-2 flex-shrink-0">
-        <div className="flex items-center">
+        <div role="tablist" className="flex items-center">
           <button
+            role="tab"
+            id="tab-theory"
+            aria-selected={activeTab === 'theory'}
+            aria-controls="panel-theory"
             onClick={() => setActiveTab('theory')}
             className={`flex items-center gap-2 px-3 py-2 text-xs font-medium border-b-2 transition-all ${
               activeTab === 'theory'
-                ? 'border-emerald-500 text-emerald-400 bg-zinc-900/40 rounded-t-lg'
+                ? 'border-emerald-500 text-emerald-400 bg-zinc-900/40 rounded-t-lg font-semibold'
                 : 'border-transparent text-zinc-400 hover:text-zinc-200'
             }`}
           >
             <BookOpen className="w-3.5 h-3.5" />
-            <span>Lý Thuyết Bản Chất</span>
+            <span>Lý Thuyết</span>
           </button>
 
           <button
+            role="tab"
+            id="tab-problem"
+            aria-selected={activeTab === 'problem'}
+            aria-controls="panel-problem"
             onClick={() => setActiveTab('problem')}
             className={`flex items-center gap-2 px-3 py-2 text-xs font-medium border-b-2 transition-all ${
               activeTab === 'problem'
-                ? 'border-emerald-500 text-emerald-400 bg-zinc-900/40 rounded-t-lg'
+                ? 'border-emerald-500 text-emerald-400 bg-zinc-900/40 rounded-t-lg font-semibold'
                 : 'border-transparent text-zinc-400 hover:text-zinc-200'
             }`}
           >
             <Target className="w-3.5 h-3.5" />
-            <span>Thử Thách</span>
+            <span>Đề Bài</span>
             {isCompleted && <CheckCircle2 className="w-3 h-3 text-emerald-400" />}
           </button>
 
           <button
+            role="tab"
+            id="tab-hints"
+            aria-selected={activeTab === 'hints'}
+            aria-controls="panel-hints"
             onClick={() => setActiveTab('hints')}
             className={`flex items-center gap-2 px-3 py-2 text-xs font-medium border-b-2 transition-all ${
               activeTab === 'hints'
-                ? 'border-emerald-500 text-emerald-400 bg-zinc-900/40 rounded-t-lg'
+                ? 'border-emerald-500 text-emerald-400 bg-zinc-900/40 rounded-t-lg font-semibold'
                 : 'border-transparent text-zinc-400 hover:text-zinc-200'
             }`}
           >
@@ -293,14 +322,13 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
 
         {/* TAB 2: PROBLEM */}
         {activeTab === 'problem' && (
-          <div className="space-y-4">
+          <div role="tabpanel" id="panel-problem" aria-labelledby="tab-problem" className="space-y-4">
             <div className="p-3.5 rounded-xl border border-zinc-800 bg-zinc-900/50 space-y-2">
-              <div className="text-xs text-zinc-400">Yêu cầu thử thách:</div>
               <h2 className="text-sm font-semibold text-zinc-100">{lesson.summary}</h2>
               {lesson.targetFunction && (
-                <div className="flex items-center gap-2 pt-1">
+                <div className="flex items-center gap-2 pt-1 font-mono">
                   <span className="text-xs text-zinc-400">Tên hàm cần định nghĩa:</span>
-                  <code className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  <code className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                     def {lesson.targetFunction}(...)
                   </code>
                 </div>
@@ -354,7 +382,7 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
 
         {/* TAB 3: HINTS */}
         {activeTab === 'hints' && (
-          <div className="space-y-3">
+          <div role="tabpanel" id="panel-hints" aria-labelledby="tab-hints" className="space-y-3">
             <p className="text-xs text-zinc-400">
               Bạn gặp khó khăn khi làm bài? Hãy mở lần lượt từng gợi ý dưới đây trước khi xem đáp án mẫu nhé:
             </p>

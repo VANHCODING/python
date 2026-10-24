@@ -54,28 +54,35 @@ class CaptureOutput:
         return self.stderr_buffer.getvalue()
 
 def friendly_error_info(exc):
+    import re
     err_type = type(exc).__name__
     msg = str(exc)
     hint = ""
     if err_type == "IndentationError":
-        hint = "💡 Gợi ý: Lỗi thụt lề! Trong Python, các câu lệnh trong cùng khối (sau dấu :, if, def, for...) phải thụt lề đều nhau (chuẩn 4 dấu cách)."
+        if "expected an indented block" in msg:
+            hint = "💡 Gợi ý: Sau dấu ':' bắt buộc phải thụt lề 4 dấu cách ở dòng kế tiếp."
+        elif "unindent does not match" in msg:
+            hint = "💡 Gợi ý: Thụt lề không khớp các dòng trên. Hãy kiểm tra xem bạn có trộn Tab và phím cách không."
+        else:
+            hint = "💡 Gợi ý: Lỗi thụt lề! Trong Python, các câu lệnh trong cùng khối (sau dấu :, if, def, for...) phải thụt lề đều nhau (chuẩn 4 dấu cách)."
     elif err_type == "SyntaxError":
-        if "cannot assign to" in msg or "invalid syntax. Maybe you meant '=='" in msg:
-            hint = "💡 Gợi ý: Bạn đang dùng dấu bằng đơn '=' trong biểu thức so sánh! Trong Python, so sánh bằng bắt buộc phải dùng hai dấu bằng '=='."
+        if "cannot assign to" in msg or "invalid syntax. Maybe you meant '=='" in msg or "Maybe you meant '=='" in msg:
+            hint = "💡 Gợi ý: Bạn đang dùng '=' (gán) trong điều kiện, cần đổi thành '==' (so sánh bằng)."
         elif "invalid character" in msg or any(c in msg for c in ['≠', '≥', '≤']):
             hint = "💡 Gợi ý: Phát hiện ký hiệu toán học (≠, ≥, ≤)! Trong code Python không có các ký tự này, hãy dùng: '!=', '>=', '<='."
         elif "expected ':'" in msg:
-            hint = "💡 Gợi ý: Thiếu dấu hai chấm ':' ở cuối dòng câu lệnh (if, elif, else, for, while, def)!"
+            hint = "💡 Gợi ý: Thiếu dấu ':' ở cuối dòng câu lệnh if/elif/else/for/while/def."
         else:
             hint = "💡 Gợi ý: Lỗi cú pháp! Kiểm tra xem bạn có quên dấu hai chấm ':', quên đóng ngoặc ')' hay dấu nháy kép không."
     elif err_type == "NameError":
-        hint = f"💡 Gợi ý: Bạn đang gọi một biến hoặc hàm chưa được định nghĩa. Hãy kiểm tra lại lỗi chính tả."
+        m = re.search(r"name '(.+)' is not defined", msg)
+        var_n = m.group(1) if m else "này"
+        hint = f"💡 Gợi ý: Biến '{var_n}' chưa được khai báo hoặc gõ sai tên (chú ý chữ hoa/thường)."
     elif err_type == "TypeError":
-        hint = "💡 Gợi ý: Lỗi kiểu dữ liệu (TypeError)! Ví dụ: cố tình cộng chuỗi với số mà chưa ép kiểu str(), hoặc truyền sai số lượng đối số cho hàm."
-    elif err_type == "IndexError":
-        hint = "💡 Gợi ý: Vượt quá giới hạn danh sách/chuỗi (Index out of range). Lưu ý Python đánh chỉ số từ 0 đến N - 1."
-    elif err_type == "KeyError":
-        hint = "💡 Gợi ý: Khóa (Key) không tồn tại trong Dictionary."
+        if "not supported between instances" in msg:
+            hint = "💡 Gợi ý: Không so sánh hoặc tính toán được giữa 2 kiểu dữ liệu khác nhau (ví dụ: chuỗi với số)."
+        else:
+            hint = "💡 Gợi ý: Lỗi kiểu dữ liệu (TypeError)! Ví dụ: cố tình cộng chuỗi với số mà chưa ép kiểu str(), hoặc truyền sai số lượng đối số cho hàm."
     elif err_type == "ZeroDivisionError":
         hint = "💡 Gợi ý: Lỗi chia cho 0! Mẫu số không được bằng 0."
     return {
@@ -201,6 +208,15 @@ target_func_name = __TARGET_FUNC__
 def are_equal(actual, expected):
     if actual == expected:
         return True
+    # Vietnamese diacritic & case-insensitive normalization for strings (e.g. 'Giỏi' == 'Gioi')
+    if isinstance(actual, str) and isinstance(expected, str):
+        import unicodedata
+        def strip_vn(s):
+            s = unicodedata.normalize('NFD', str(s))
+            s = ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+            return s.replace('đ', 'd').replace('Đ', 'D').strip().lower()
+        if strip_vn(actual) == strip_vn(expected):
+            return True
     # Compare tuple vs list (JSON converts tuples to arrays/lists)
     if isinstance(actual, (tuple, list)) and isinstance(expected, (tuple, list)):
         if len(actual) != len(expected):
@@ -278,6 +294,16 @@ else:
         all_passed = False
     else:
         for tc in test_cases:
+            try:
+                import js
+                js.self.postMessage(js.JSON.parse(json.dumps({
+                    "type": "TEST_PROGRESS",
+                    "id": tc.get("id"),
+                    "label": tc.get("description", "")
+                })))
+            except Exception:
+                pass
+
             tc_type = tc.get("type", "function")
             expected = tc.get("expected")
             inputs = tc.get("input", [])
@@ -303,7 +329,7 @@ else:
                         # Compare captured script output
                         actual_out = cap_compile.get_stdout().strip()
                         tc_actual = actual_out
-                        tc_passed = (str(actual_out).strip() == str(expected).strip())
+                        tc_passed = are_equal(actual_out, str(expected).strip())
                     elif tc_type == "variable":
                         # Multi-scenario dynamic injection or single-run variable check
                         if mock_vars:

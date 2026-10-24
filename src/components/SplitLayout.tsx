@@ -2,15 +2,16 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 interface SplitLayoutProps {
   left: React.ReactNode;
+  challengeBar?: React.ReactNode;
   editor: React.ReactNode;
   console: React.ReactNode;
 }
 
-export const SplitLayout: React.FC<SplitLayoutProps> = ({ left, editor, console }) => {
+export const SplitLayout: React.FC<SplitLayoutProps> = ({ left, challengeBar, editor, console }) => {
   // Horizontal split: percentage of left panel width (default 42%)
   const [leftWidthPercent, setLeftWidthPercent] = useState(42);
-  // Vertical split: percentage of editor height (default 50% for comfortable console reading)
-  const [editorHeightPercent, setEditorHeightPercent] = useState(50);
+  // Vertical split: percentage of editor height (default 65% for spacious editor)
+  const [editorHeightPercent, setEditorHeightPercent] = useState(65);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingHRef = useRef(false);
@@ -90,11 +91,13 @@ export const SplitLayout: React.FC<SplitLayoutProps> = ({ left, editor, console 
         <div className="w-0.5 h-8 bg-zinc-700 group-hover:bg-emerald-300 rounded" />
       </div>
 
-      {/* Right Pane (Workspace: Editor + Console) */}
-      <div className="right-pane flex-1 flex flex-col h-full overflow-hidden min-w-0">
-        {/* Editor Area */}
+      {/* Right Pane (Workspace: ChallengeBar + Editor + Console) */}
+      <div className="right-pane flex-1 flex flex-col h-full min-h-0 overflow-hidden min-w-0">
+        {challengeBar}
+
+        {/* Editor Area with guaranteed min-height */}
         <div
-          className="w-full flex-shrink-0"
+          className="w-full min-h-[220px] flex-1 flex flex-col overflow-hidden"
           style={{ height: `${editorHeightPercent}%` }}
         >
           {editor}
@@ -103,13 +106,16 @@ export const SplitLayout: React.FC<SplitLayoutProps> = ({ left, editor, console 
         {/* Vertical Divider */}
         <div
           onMouseDown={startDragV}
-          className="h-1.5 hover:h-2 bg-zinc-900 hover:bg-emerald-500/60 transition-all cursor-row-resize z-20 group relative flex items-center justify-center"
+          className="h-1.5 hover:h-2 bg-zinc-900 hover:bg-emerald-500/60 transition-all cursor-row-resize z-20 group relative flex items-center justify-center flex-shrink-0"
         >
-          <div className="h-0.5 w-8 bg-zinc-700 group-hover:bg-emerald-300 rounded" />
+          <div className="h-0.5 w-10 bg-zinc-700 group-hover:bg-emerald-300 rounded" />
         </div>
 
-        {/* Console Area */}
-        <div className="flex-1 min-h-0">
+        {/* Console Area with clamped height so it never crunches editor */}
+        <div
+          className="w-full shrink-0 overflow-hidden flex flex-col"
+          style={{ height: `clamp(130px, ${100 - editorHeightPercent}%, 280px)` }}
+        >
           {console}
         </div>
       </div>

@@ -8,6 +8,7 @@ import { ProblemPanel } from './components/ProblemPanel';
 import { EditorPanel } from './components/EditorPanel';
 import { ConsolePanel } from './components/ConsolePanel';
 import { SplitLayout } from './components/SplitLayout';
+import { ChallengeBar } from './components/ChallengeBar';
 import { CelebrationModal } from './components/CelebrationModal';
 import { ResetModal } from './components/ResetModal';
 import { playSuccessChime } from './utils/sound';
@@ -283,6 +284,7 @@ export function App() {
         />
 
         <SplitLayout
+          challengeBar={<ChallengeBar lesson={currentLesson} />}
           left={
             <ProblemPanel
               lesson={currentLesson}
@@ -291,13 +293,13 @@ export function App() {
               onNextLesson={handleNextLesson}
               hasPrev={!!prevLesson}
               hasNext={!!nextLesson}
+              onTryCode={(snippet) => handleCodeChange(snippet)}
             />
           }
           editor={
             <EditorPanel
               code={code}
               lessonId={currentLesson.id}
-              lesson={currentLesson}
               onChange={handleCodeChange}
               onRunCode={handleRunCode}
               onSubmitTest={handleSubmitTest}

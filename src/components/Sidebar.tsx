@@ -89,6 +89,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }));
   };
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
@@ -100,7 +109,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       />
 
       {/* Drawer Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-50 w-80 sm:w-96 bg-zinc-950 border-r border-zinc-800 shadow-2xl flex flex-col h-full overflow-hidden select-none animate-in slide-in-from-left duration-200">
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label="Mục lục lộ trình học Python"
+        className="fixed inset-y-0 left-0 z-50 w-80 sm:w-96 bg-zinc-950 border-r border-zinc-800 shadow-2xl flex flex-col h-full overflow-hidden select-none animate-in slide-in-from-left duration-200"
+      >
         {/* Top Header */}
         <div className="p-3.5 border-b border-zinc-800/80 flex items-center justify-between flex-shrink-0 bg-zinc-950">
           <div className="flex items-center gap-2">

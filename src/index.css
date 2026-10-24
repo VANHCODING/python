@@ -54,9 +54,8 @@
   background: #52525b;
 }
 
-/* Markdown styling inside theory tab */
 /* Disable font ligatures across all code blocks and inline code so == != >= <= are not merged into single glyphs */
-code, pre, kbd, samp, .font-mono, .monaco-editor, .monaco-editor * {
+html, code, pre, kbd, samp, .font-mono, .monaco-editor, .monaco-editor * {
   font-variant-ligatures: none !important;
   font-feature-settings: "liga" 0, "calt" 0 !important;
 }
@@ -85,20 +84,38 @@ code, pre, kbd, samp, .font-mono, .monaco-editor, .monaco-editor * {
   @apply bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-xs font-mono text-emerald-300 overflow-x-auto my-2.5;
 }
 
-.prose-custom code:not(pre code) {
-  @apply bg-zinc-800 text-emerald-300 px-1.5 py-0.5 rounded text-xs font-mono font-medium;
+/* Only INLINE code has background & borders */
+.prose-custom :not(pre) > code {
+  @apply bg-zinc-800 text-emerald-300 px-1.5 py-0.5 rounded text-xs font-mono font-medium border border-zinc-700/60 whitespace-nowrap;
 }
 
+/* Code inside <pre> is clean & transparent to let syntax highlighting shine */
+.prose-custom pre code {
+  background: none !important;
+  border: 0 !important;
+  padding: 0 !important;
+  color: inherit !important;
+  white-space: pre !important;
+}
+
+/* Scrollable markdown tables */
 .prose-custom table {
-  @apply w-full text-xs text-left text-zinc-300 border border-zinc-800 rounded-lg overflow-hidden my-3;
+  display: block;
+  overflow-x: auto;
+  min-width: 100%;
+  border-collapse: collapse;
 }
 
 .prose-custom th {
-  @apply bg-zinc-900 text-zinc-200 font-semibold p-2 border-b border-zinc-800;
+  @apply bg-zinc-900 text-zinc-200 font-semibold p-2 border-b border-zinc-800 whitespace-nowrap;
+  min-width: 6.5rem;
+  vertical-align: top;
 }
 
 .prose-custom td {
   @apply p-2 border-b border-zinc-800/60;
+  min-width: 6.5rem;
+  vertical-align: top;
 }
 
 .prose-custom blockquote {

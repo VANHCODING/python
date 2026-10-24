@@ -28,6 +28,7 @@ export function usePyodide() {
 
   const workerRef = useRef<Worker | null>(null);
   const timeoutTimerRef = useRef<number | null>(null);
+  const lastRunningTestRef = useRef<{ id: string; label: string } | null>(null);
 
   const clearTimer = () => {
     if (timeoutTimerRef.current !== null) {
@@ -78,6 +79,8 @@ export function usePyodide() {
             executionTimeMs: 0,
           },
         }));
+      } else if (msg.type === 'TEST_PROGRESS') {
+        lastRunningTestRef.current = { id: msg.id, label: msg.label };
       } else if (msg.type === 'TESTS_COMPLETE') {
         clearTimer();
         setState((prev) => ({
@@ -139,8 +142,12 @@ export function usePyodide() {
     if (workerRef.current) {
       workerRef.current.terminate();
     }
+    const testInfo =
+      type === 'test' && lastRunningTestRef.current
+        ? ` ở test case "${lastRunningTestRef.current.label || lastRunningTestRef.current.id}"`
+        : '';
     const timeoutMsg =
-      '⏱️ Quá thời gian thực thi (Timeout > 8s)!\n\n💡 Nguyên nhân phổ biến: Code của bạn đang gặp vòng lặp vô tận (ví dụ: while True không có break hoặc biến điều kiện không đổi giá trị), hoặc phép toán quá nặng.\n\nĐã tự động khởi động lại môi trường Python.';
+      `⏱️ Quá thời gian thực thi (Timeout > 8s)${testInfo}!\n\n💡 Nguyên nhân phổ biến: Code của bạn đang gặp vòng lặp vô tận (ví dụ: while True không có break hoặc biến điều kiện không đổi giá trị), hoặc phép toán quá nặng.\n\nĐã tự động khởi động lại môi trường Python.`;
 
     setState((prev) => ({
       ...prev,
@@ -188,7 +195,7 @@ export function usePyodide() {
 
   const runCode = useCallback(
     (code: string) => {
-      if (!workerRef.current || !state.isReady) return;
+      if (!workerRef.current || !state.isReady || state.isRunning || state.isTesting) return;
       clearTimer();
       setState((prev) => ({
         ...prev,
@@ -205,13 +212,14 @@ export function usePyodide() {
         code,
       });
     },
-    [state.isReady]
+    [state.isReady, state.isRunning, state.isTesting]
   );
 
   const runTests = useCallback(
     (code: string, testCases: TestCase[], targetFunction?: string) => {
-      if (!workerRef.current || !state.isReady) return;
+      if (!workerRef.current || !state.isReady || state.isRunning || state.isTesting) return;
       clearTimer();
+      lastRunningTestRef.current = null;
       setState((prev) => ({
         ...prev,
         isTesting: true,
@@ -230,7 +238,7 @@ export function usePyodide() {
         targetFunction,
       });
     },
-    [state.isReady]
+    [state.isReady, state.isRunning, state.isTesting]
   );
 
   const resetOutputs = useCallback(() => {
