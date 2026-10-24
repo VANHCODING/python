@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { CURRICULUM } from './data/curriculum';
 import { Lesson, UserProgress } from './types';
 import { usePyodide } from './hooks/usePyodide';
@@ -74,18 +74,36 @@ export function App() {
     setCode(saved !== undefined ? saved : currentLesson.starterCode);
   }, [currentLesson.id]);
 
-  // Save progress to localStorage
+  const saveTimerRef = useRef<number | null>(null);
+
+  // Save progress to localStorage (debounced 300ms to avoid synchronous disk I/O lag while typing)
   const saveProgress = useCallback((newProgress: Partial<UserProgress>) => {
     setProgress((prev) => {
       const updated = { ...prev, ...newProgress };
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      } catch (e) {
-        console.warn('Failed to save to localStorage', e);
+      if (saveTimerRef.current !== null) {
+        window.clearTimeout(saveTimerRef.current);
       }
+      saveTimerRef.current = window.setTimeout(() => {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        } catch (e) {
+          console.warn('Failed to save to localStorage', e);
+        }
+      }, 300);
       return updated;
     });
   }, []);
+
+  // Flush pending save immediately on unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      } catch (e) {}
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [progress]);
 
   // Handle code change and persist
   const handleCodeChange = (newCode: string) => {

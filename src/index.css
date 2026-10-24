@@ -27,11 +27,14 @@
   background: #52525b;
 }
 
-/* Independent, isolated scrollbar for separate panels */
+/* Independent, isolated scrollbar for separate panels with GPU compositing layer */
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #3f3f46 transparent;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  contain: content;
+  transform: translateZ(0);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -55,7 +58,8 @@
 }
 
 /* Disable font ligatures across all code blocks and inline code so == != >= <= are not merged into single glyphs */
-html, code, pre, kbd, samp, .font-mono, .monaco-editor, .monaco-editor * {
+/* NOTE: Avoid wildcard *.monaco-editor * selector as it causes severe style invalidation lag on tab switch */
+html, code, pre, kbd, samp, .font-mono {
   font-variant-ligatures: none !important;
   font-feature-settings: "liga" 0, "calt" 0 !important;
 }

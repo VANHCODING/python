@@ -22,6 +22,27 @@ export const SplitLayout: React.FC<SplitLayoutProps> = ({ left, challengeBar, ed
     isDraggingHRef.current = true;
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
+
+    const onMove = (moveEvent: MouseEvent) => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const newPercent = ((moveEvent.clientX - rect.left) / rect.width) * 100;
+        if (newPercent >= 20 && newPercent <= 70) {
+          setLeftWidthPercent(newPercent);
+        }
+      }
+    };
+
+    const onUp = () => {
+      isDraggingHRef.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
   }, []);
 
   const startDragV = useCallback((e: React.MouseEvent) => {
@@ -29,23 +50,13 @@ export const SplitLayout: React.FC<SplitLayoutProps> = ({ left, challengeBar, ed
     isDraggingVRef.current = true;
     document.body.style.cursor = 'row-resize';
     document.body.style.userSelect = 'none';
-  }, []);
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDraggingHRef.current && containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const newPercent = ((e.clientX - rect.left) / rect.width) * 100;
-        if (newPercent >= 20 && newPercent <= 70) {
-          setLeftWidthPercent(newPercent);
-        }
-      }
-
-      if (isDraggingVRef.current && containerRef.current) {
+    const onMove = (moveEvent: MouseEvent) => {
+      if (containerRef.current) {
         const rightContainer = containerRef.current.querySelector('.right-pane');
         if (rightContainer) {
           const rect = rightContainer.getBoundingClientRect();
-          const newPercent = ((e.clientY - rect.top) / rect.height) * 100;
+          const newPercent = ((moveEvent.clientY - rect.top) / rect.height) * 100;
           if (newPercent >= 25 && newPercent <= 80) {
             setEditorHeightPercent(newPercent);
           }
@@ -53,21 +64,16 @@ export const SplitLayout: React.FC<SplitLayoutProps> = ({ left, challengeBar, ed
       }
     };
 
-    const handleMouseUp = () => {
-      if (isDraggingHRef.current || isDraggingVRef.current) {
-        isDraggingHRef.current = false;
-        isDraggingVRef.current = false;
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-      }
+    const onUp = () => {
+      isDraggingVRef.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
   }, []);
 
   return (

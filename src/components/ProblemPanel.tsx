@@ -250,6 +250,11 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
     return elements;
   };
 
+  // Memoize rendered markdown to avoid expensive regex re-parsing on every re-render
+  const renderedTheory = React.useMemo(() => {
+    return renderSimpleMarkdown(lesson.theoryMarkdown);
+  }, [lesson.theoryMarkdown, copiedCodeIdx, onTryCode]);
+
   return (
     <div className="h-full flex flex-col bg-zinc-950 border-r border-zinc-800/80 overflow-hidden">
       {/* Tab Navigation */}
@@ -316,7 +321,7 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
                 {lesson.concept}
               </span>
             </div>
-            <div className="prose-custom">{renderSimpleMarkdown(lesson.theoryMarkdown)}</div>
+            <div className="prose-custom">{renderedTheory}</div>
           </div>
         )}
 

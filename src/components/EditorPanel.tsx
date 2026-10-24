@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Editor, { OnMount, BeforeMount } from '@monaco-editor/react';
 import { Play, Send, Loader2, Sparkles, Download, Copy, Check } from 'lucide-react';
 
@@ -16,6 +16,29 @@ interface EditorPanelProps {
   onFormatCode?: () => void;
 }
 
+// Hoist options outside component to avoid triggering editor.updateOptions on every render
+const MONACO_OPTIONS = {
+  fontSize: 14,
+  fontFamily: "'JetBrains Mono', monospace",
+  fontLigatures: false,
+  tabSize: 4,
+  insertSpaces: true,
+  detectIndentation: false,
+  renderWhitespace: 'boundary' as const,
+  minimap: { enabled: false },
+  lineNumbers: 'on' as const,
+  scrollBeyondLastLine: false,
+  automaticLayout: false, // Disabled: replace 100ms setInterval polling with event-driven ResizeObserver
+  cursorBlinking: 'blink' as const, // 'blink' is much cheaper than 'smooth' continuous canvas animation
+  smoothScrolling: false, // Native instant scrolling without rAF interpolation queue lag on tab return
+  padding: { top: 12, bottom: 12 },
+  overviewRulerBorder: false,
+  folding: true,
+  wordWrap: 'on' as const,
+  guides: { indentation: true },
+  ariaLabel: 'Trình soạn thảo mã Python',
+};
+
 export const EditorPanel: React.FC<EditorPanelProps> = ({
   code,
   lessonId,
@@ -29,6 +52,8 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
   isTesting,
 }) => {
   const editorRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const [copied, setCopied] = useState(false);
 
   const isMac =
@@ -41,14 +66,14 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
   const runShortcutTitle = `Phím tắt: ${isMac ? 'Cmd + Enter' : 'Ctrl + Enter'}`;
   const submitShortcutTitle = `Phím tắt: ${isMac ? 'Cmd + Shift + Enter' : 'Ctrl + Shift + Enter'}`;
 
-  const handleBeforeMount: BeforeMount = (monaco) => {
+  const handleBeforeMount: BeforeMount = useCallback((monaco) => {
     monaco.editor.defineTheme('pymaster', {
       base: 'vs-dark',
       inherit: true,
       rules: [{ token: 'comment', foreground: '9CCFA8' }],
       colors: { 'editor.background': '#0b0f0e' },
     });
-  };
+  }, []);
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -64,7 +89,34 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
         onSubmitTest();
       }
     );
+
+    // Efficient event-driven ResizeObserver instead of automaticLayout's 100ms setInterval
+    if (containerRef.current && typeof ResizeObserver !== 'undefined') {
+      resizeObserverRef.current?.disconnect();
+      const ro = new ResizeObserver(() => {
+        editor.layout();
+      });
+      ro.observe(containerRef.current);
+      resizeObserverRef.current = ro;
+    }
   };
+
+  useEffect(() => {
+    // When returning from another tab, trigger clean layout on next frame
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && editorRef.current) {
+        requestAnimationFrame(() => {
+          editorRef.current?.layout();
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      resizeObserverRef.current?.disconnect();
+    };
+  }, []);
 
   const handleFormatCode = () => {
     if (editorRef.current) {
@@ -178,7 +230,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
       </div>
 
       {/* Monaco Editor Container */}
-      <div className="flex-1 min-h-0 relative">
+      <div ref={containerRef} className="flex-1 min-h-0 relative">
         <Editor
           height="100%"
           language="python"
@@ -187,27 +239,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           onChange={(val) => onChange(val || '')}
           beforeMount={handleBeforeMount}
           onMount={handleEditorDidMount}
-          options={{
-            fontSize: 14,
-            fontFamily: "'JetBrains Mono', monospace",
-            fontLigatures: false,
-            tabSize: 4,
-            insertSpaces: true,
-            detectIndentation: false,
-            renderWhitespace: 'boundary',
-            minimap: { enabled: false },
-            lineNumbers: 'on',
-            scrollBeyondLastLine: false,
-            automaticLayout: true,
-            cursorBlinking: 'smooth',
-            smoothScrolling: true,
-            padding: { top: 12, bottom: 12 },
-            overviewRulerBorder: false,
-            folding: true,
-            wordWrap: 'on',
-            guides: { indentation: true },
-            ariaLabel: 'Trình soạn thảo mã Python',
-          }}
+          options={MONACO_OPTIONS}
           loading={
             <div className="flex flex-col items-center justify-center h-full gap-2 text-zinc-400 text-xs">
               <Loader2 className="w-5 h-5 animate-spin text-emerald-500" />
