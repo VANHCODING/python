@@ -131,7 +131,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Module & Lesson List - Independent scroll container */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar overscroll-contain">
+        <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3 custom-scrollbar">
         {modules.map((mod) => {
           const IconComponent = iconMap[mod.icon] || Box;
           const isExpanded = !!expandedModules[mod.id];

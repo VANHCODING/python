@@ -77,10 +77,10 @@ export const SplitLayout: React.FC<SplitLayoutProps> = ({ left, challengeBar, ed
   }, []);
 
   return (
-    <div ref={containerRef} className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+    <div ref={containerRef} className="flex-1 flex flex-col md:flex-row overflow-hidden relative min-h-0 min-w-0">
       {/* Left Pane (Theory & Problem) */}
       <div
-        className="w-full md:h-full flex-shrink-0 overflow-hidden"
+        className="w-full md:h-full flex-shrink-0 overflow-hidden flex flex-col min-h-0 min-w-0"
         style={{
           width: window.innerWidth >= 768 ? `${leftWidthPercent}%` : '100%',
           height: window.innerWidth < 768 ? '45vh' : '100%',

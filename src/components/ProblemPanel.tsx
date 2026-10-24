@@ -27,7 +27,7 @@ interface ProblemPanelProps {
   onTryCode?: (code: string) => void;
 }
 
-export const ProblemPanel: React.FC<ProblemPanelProps> = ({
+export const ProblemPanel = React.memo<ProblemPanelProps>(({
   lesson,
   isCompleted,
   onPrevLesson,
@@ -36,6 +36,9 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
   hasNext,
   onTryCode,
 }) => {
+  const onTryCodeRef = React.useRef(onTryCode);
+  onTryCodeRef.current = onTryCode;
+
   const [activeTab, setActiveTab] = useState<'theory' | 'problem' | 'hints'>('theory');
   const [revealedHints, setRevealedHints] = useState<number[]>([]);
   const [showSolution, setShowSolution] = useState(false);
@@ -152,7 +155,7 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
                 <div className="flex items-center gap-1.5">
                   {onTryCode && (
                     <button
-                      onClick={() => onTryCode(rawCode)}
+                      onClick={() => onTryCodeRef.current?.(rawCode)}
                       className="flex items-center gap-1 text-[10px] text-emerald-400 hover:text-emerald-300 px-1.5 py-0.5 rounded hover:bg-emerald-500/10 border border-emerald-500/20 transition-colors"
                       title="Nạp đoạn code mẫu này vào Editor để chạy thử"
                       aria-label="Thử ngay đoạn code này"
@@ -253,10 +256,10 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
   // Memoize rendered markdown to avoid expensive regex re-parsing on every re-render
   const renderedTheory = React.useMemo(() => {
     return renderSimpleMarkdown(lesson.theoryMarkdown);
-  }, [lesson.theoryMarkdown, copiedCodeIdx, onTryCode]);
+  }, [lesson.theoryMarkdown, copiedCodeIdx]);
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 border-r border-zinc-800/80 overflow-hidden">
+    <div className="h-full flex flex-col min-h-0 min-w-0 bg-zinc-950 border-r border-zinc-800/80 overflow-hidden">
       {/* Tab Navigation */}
       <div className="flex items-center justify-between border-b border-zinc-800/80 bg-zinc-950 px-3 pt-2 flex-shrink-0">
         <div role="tablist" className="flex items-center">
@@ -312,7 +315,10 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
       </div>
 
       {/* Tab Content - Independent scroll container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar overscroll-contain">
+      <div
+        tabIndex={0}
+        className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 custom-scrollbar focus:outline-none select-text"
+      >
         {/* TAB 1: THEORY */}
         {activeTab === 'theory' && (
           <div className="space-y-4">
@@ -511,4 +517,4 @@ export const ProblemPanel: React.FC<ProblemPanelProps> = ({
       </div>
     </div>
   );
-};
+});

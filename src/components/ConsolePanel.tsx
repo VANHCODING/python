@@ -84,7 +84,7 @@ export const ConsolePanel: React.FC<ConsolePanelProps> = ({
       </div>
 
       {/* Content Area - Independent scroll container */}
-      <div className="flex-1 overflow-y-auto p-3 font-mono text-xs custom-scrollbar overscroll-contain">
+      <div className="flex-1 min-h-0 overflow-y-auto p-3 font-mono text-xs custom-scrollbar">
         {/* TAB 1: TERMINAL */}
         {activeTab === 'terminal' && (
           <div className="space-y-2">

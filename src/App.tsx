@@ -106,7 +106,7 @@ export function App() {
   }, [progress]);
 
   // Handle code change and persist
-  const handleCodeChange = (newCode: string) => {
+  const handleCodeChange = useCallback((newCode: string) => {
     setCode(newCode);
     saveProgress({
       savedCode: {
@@ -114,7 +114,7 @@ export function App() {
         [currentLesson.id]: newCode,
       },
     });
-  };
+  }, [currentLesson.id, progress.savedCode, saveProgress]);
 
   // Reset code modal state
   const [showResetModal, setShowResetModal] = useState(false);
@@ -311,7 +311,7 @@ export function App() {
               onNextLesson={handleNextLesson}
               hasPrev={!!prevLesson}
               hasNext={!!nextLesson}
-              onTryCode={(snippet) => handleCodeChange(snippet)}
+              onTryCode={handleCodeChange}
             />
           }
           editor={

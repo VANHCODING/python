@@ -37,6 +37,9 @@ const MONACO_OPTIONS = {
   wordWrap: 'on' as const,
   guides: { indentation: true },
   ariaLabel: 'Trình soạn thảo mã Python',
+  scrollbar: {
+    alwaysConsumeMouseWheel: false, // Don't block parent or sibling panes from receiving mousewheel events
+  },
 };
 
 export const EditorPanel: React.FC<EditorPanelProps> = ({
